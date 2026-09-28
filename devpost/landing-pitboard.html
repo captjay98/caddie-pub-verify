@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="canvas:width" content="1440" />
+<meta name="canvas:height" content="3400" />
+<meta name="canvas:aspect-ratio" content="1440:3400" />
+<title>Caddie — the pit board for hackathon builders</title>
+<meta name="description" content="Caddie carries the operational bag for a hackathon entry: vetted rules, shipped repo, judged scorecard. All status on one board." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Direction B — "Pit board spine, Halo palette"
+   Same tokens as src/styles/halo.css; new structural grammar
+   taken from devpost/look-variants.html (04 · Pit layout).
+   Hairline rails, tabular readouts, flush columns, no card soup.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --seed-bg: #090b10;
+  --seed-fg: #e6e9ef;
+  --seed-surface: #101319;
+  --seed-raised: #151922;
+  --seed-primary: #4d9fff;
+  --seed-ok: #3ecf8e;
+  --seed-warn: #f0a83c;
+  --seed-danger: #ff7a83;
+  --seed-radius: 10px;
+
+  --type-scale: 1;
+  --density: 1;
+
+  --text-muted: color-mix(in srgb, var(--seed-fg) 60%, var(--seed-bg));
+  --text-quiet: color-mix(in srgb, var(--seed-fg) 52%, var(--seed-bg));
+  --on-key: var(--seed-bg);
+  --line: color-mix(in srgb, var(--seed-fg) 15%, transparent);
+  --line-soft: color-mix(in srgb, var(--seed-fg) 7%, transparent);
+  --line-hard: color-mix(in srgb, var(--seed-fg) 28%, transparent);
+  --tint-primary: color-mix(in srgb, var(--seed-primary) 11%, transparent);
+  --tint-ok: color-mix(in srgb, var(--seed-ok) 9%, transparent);
+  --tint-warn: color-mix(in srgb, var(--seed-warn) 9%, transparent);
+  --tint-danger: color-mix(in srgb, var(--seed-danger) 9%, transparent);
+  --panel: color-mix(in srgb, var(--seed-raised) 78%, var(--seed-bg));
+  --horizon: radial-gradient(1400px 520px at 50% -20%,
+      color-mix(in srgb, var(--seed-primary) 10%, transparent), transparent 60%);
+
+  --font-ui: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --gutter: calc(32px * var(--density));
+  --rail: 1px solid var(--line-soft);
+}
+
+[data-theme="light"] {
+  --seed-bg: #f4f6fb;
+  --seed-fg: #0b101a;
+  --seed-surface: #ffffff;
+  --seed-raised: #eaeef6;
+  --seed-primary: #1a72e8;
+  --seed-ok: #007b44;
+  --seed-warn: #8c5108;
+  --seed-danger: #c13846;
+  --text-muted: color-mix(in srgb, var(--seed-fg) 72%, var(--seed-bg));
+  --text-quiet: color-mix(in srgb, var(--seed-fg) 60%, var(--seed-bg));
+  --line: color-mix(in srgb, var(--seed-fg) 18%, transparent);
+  --line-soft: color-mix(in srgb, var(--seed-fg) 10%, transparent);
+  --line-hard: color-mix(in srgb, var(--seed-fg) 30%, transparent);
+  --panel: color-mix(in srgb, var(--seed-raised) 70%, var(--seed-surface));
+}
+
+* { box-sizing: border-box; }
+html { font-size: calc(16px * var(--type-scale)); }
+body {
+  margin: 0;
+  background: var(--horizon), var(--seed-bg);
+  color: var(--seed-fg);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration: none; }
+p { margin: 0; }
+
+.skip { position: absolute; left: -9999px; }
+.skip:focus { left: 16px; top: 16px; z-index: 99; background: var(--seed-primary); color: var(--seed-bg); padding: 10px 16px; }
+:focus-visible { outline: 2px solid color-mix(in srgb, var(--seed-primary) 80%, var(--seed-fg)); outline-offset: 2px; }
+main section[id], main .bay[id] { scroll-margin-top: calc(56px + 1.25rem); }
+
+/* mono readout primitives */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lbl { font-size: .625rem; color: var(--text-quiet); font-weight: 500; }
+.val { font-size: .6875rem; color: var(--seed-fg); font-weight: 500; }
+.big { font-family: var(--font-mono); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+.h1 {
+  font-size: clamp(2.75rem, 6.2vw, 5.5rem);
+  line-height: .98;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  text-transform: none;
+}
+.h2 {
+  font-size: clamp(1.625rem, 2.6vw, 2.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.026em;
+  font-weight: 600;
+}
+.lede { color: var(--text-muted); font-size: 1.0625rem; line-height: 1.6; max-width: 58ch; }
+
+/* ── top bar ─────────────────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 1.25rem;
+  padding: 0 var(--gutter);
+  min-height: 56px;
+  background: color-mix(in srgb, var(--seed-bg) 97%, var(--seed-fg));
+  border-bottom: var(--rail);
+}
+.topbar .wordmark { font-family: var(--font-mono); font-size: .8125rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; }
+.topbar nav { display: flex; gap: 1.25rem; margin-left: .5rem; }
+.topbar nav a { font-family: var(--font-mono); font-size: .625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-quiet); padding-block: .375rem; border-bottom: 1px solid transparent; }
+.topbar nav a:hover, .topbar nav a[aria-current="true"] { color: var(--seed-fg); border-bottom-color: var(--line-hard); }
+.topbar .actions { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+.state-led {
+  display: inline-flex; align-items: center; gap: .4375rem;
+  font-family: var(--font-mono); font-size: .5625rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-quiet);
+}
+.state-led i { width: 6px; height: 6px; border-radius: 50%; background: var(--seed-warn); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--font-ui); font-size: .8125rem; font-weight: 550; letter-spacing: 0.01em;
+  padding: .5625rem .9375rem; border: 1px solid transparent; cursor: pointer; white-space: nowrap;
+  border-radius: calc(var(--seed-radius) - 4px);
+  transition: background .14s ease, border-color .14s ease, transform .1s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-key { background: var(--seed-primary); color: var(--on-key); }
+.btn-key:hover { background: color-mix(in srgb, var(--seed-primary) 84%, var(--seed-fg)); }
+.btn-line { background: transparent; border-color: var(--line-hard); color: var(--seed-fg); }
+.btn-line:hover { background: color-mix(in srgb, var(--seed-fg) 7%, transparent); }
+.link-quiet { font-family: var(--font-mono); font-size: .625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.link-quiet:hover { color: var(--seed-fg); }
+
+/* ── board strip (sample bag header + index of proof) ────────── */
+.board {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+  border-bottom: var(--rail);
+  background: color-mix(in srgb, var(--seed-raised) 45%, var(--seed-bg));
+}
+.board > div, .board > a {
+  display: flex; flex-direction: column; padding: .8125rem var(--gutter) .875rem; border-left: var(--rail);
+  text-decoration: none; color: inherit; transition: background .14s ease;
+}
+.board > :first-child { border-left: 0; }
+.board .lbl { font-size: .6875rem; }
+.board .val { display: block; margin-top: .3125rem; font-size: .9375rem; letter-spacing: -0.01em; }
+.board .val.num { font-family: var(--font-mono); font-weight: 700; font-size: 1.25rem; }
+.board .proof {
+  display: block; margin-top: auto; padding-top: .5rem; font-family: var(--font-mono); font-size: .5625rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-quiet);
+}
+.board a:hover { background: color-mix(in srgb, var(--seed-primary) 10%, transparent); }
+.board a:hover .proof { color: var(--seed-primary); }
+.board a:focus-visible { outline: 2px solid color-mix(in srgb, var(--seed-primary) 80%, var(--seed-fg)); outline-offset: -2px; }
+.hue-warn { color: var(--seed-warn); }
+.hue-ok { color: var(--seed-ok); }
+.hue-danger { color: var(--seed-danger); }
+.hue-primary { color: var(--seed-primary); }
+
+/* ── hero ────────────────────────────────────────────────────── */
+.hero {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  border-bottom: var(--rail);
+}
+.hero-l { padding: calc(72px * var(--density)) var(--gutter) calc(64px * var(--density)); border-right: var(--rail); display: flex; flex-direction: column; justify-content: center; }
+.hero-r { padding: calc(72px * var(--density)) var(--gutter) calc(64px * var(--density)); }
+.eyebrow {
+  display: flex; align-items: center; gap: .75rem; margin-bottom: 1.5rem;
+}
+.eyebrow .idx { font-family: var(--font-mono); font-size: .625rem; letter-spacing: 0.14em; color: var(--seed-primary); }
+.eyebrow .rule { flex: 1; height: 1px; background: var(--line-soft); }
+.hero .lede { margin-top: 1.5rem; }
+.hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: 2rem; }
+
+/* readout table under the screenshot */
+.readout { border-top: var(--rail); margin-top: 1.25rem; }
+.readout .lbl { font-size: .6875rem; color: var(--text-muted); }
+.readout .r-row {
+  display: grid; grid-template-columns: minmax(0, .55fr) minmax(0, 1fr); gap: 1rem;
+  padding: .5625rem 0; border-bottom: var(--rail); align-items: baseline;
+}
+.shot { border: 1px solid var(--line); background: var(--panel); }
+.shot .bar { display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem; border-bottom: var(--rail); }
+.shot .bar span { font-family: var(--font-mono); font-size: .5625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-quiet); }
+.shot .bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--line-hard); }
+.shot .bar i:first-child { background: color-mix(in srgb, var(--seed-danger) 70%, transparent); }
+.shot .bar i:nth-child(2) { background: color-mix(in srgb, var(--seed-warn) 70%, transparent); }
+.shot .bar i:nth-child(3) { background: color-mix(in srgb, var(--seed-ok) 65%, transparent); }
+.shot .bar span.host { margin-left: .5rem; }
+
+/* device pairing — real desktop shot + hand-built mobile re-flow */
+.devices { position: relative; }
+.phone {
+  position: relative;
+  width: min(238px, 100%);
+  margin: -3.5rem 0 0 auto;
+  padding: .4375rem .4375rem .5625rem;
+  border: 1px solid var(--line-hard);
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--seed-raised) 94%, var(--seed-fg));
+  box-shadow: 0 22px 44px -30px color-mix(in srgb, var(--seed-fg) 55%, transparent);
+}
+.phone-notch { width: 44px; height: 4px; border-radius: 9999px; background: var(--line-hard); margin: .125rem auto .5rem; }
+.phone-screen {
+  border-radius: 18px; border: 1px solid var(--line-soft); background: var(--seed-bg);
+  padding: .5rem .4375rem .625rem; display: grid; gap: .4375rem;
+}
+.ph-status {
+  display: flex; align-items: center; justify-content: space-between; gap: .375rem;
+  padding: 0 .1875rem .125rem;
+  font-family: var(--font-mono); font-size: .5625rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-quiet);
+}
+.phone .frag { background: var(--panel); border-color: var(--line-soft); border-radius: calc(var(--seed-radius) - 6px); padding: .5rem .5625rem .5625rem; }
+.phone .frag-k { font-size: .5625rem; letter-spacing: 0.08em; }
+.phone .frag-k svg { width: 10px; height: 10px; }
+.phone .frag h4 { font-size: .75rem; margin-top: .3125rem; line-height: 1.3; }
+.phone .mrow { font-size: .6875rem; gap: .3125rem; margin-top: .1875rem; }
+.phone .pill { font-size: .5rem; padding: .0625rem .3125rem; letter-spacing: 0.08em; }
+.phone .fresh { font-size: .5625rem; margin-top: .375rem; letter-spacing: 0.06em; }
+.devices-cap { margin-top: 1.125rem; font-size: .75rem; line-height: 1.6; color: var(--text-quiet); max-width: 56ch; }
+
+/* ── section shell ───────────────────────────────────────────── */
+.band { border-bottom: var(--rail); padding: calc(88px * var(--density)) var(--gutter); }
+.band-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: end; margin-bottom: 3rem; }
+
+/* conditions table */
+table.cond { width: 100%; border-collapse: collapse; }
+table.cond caption { text-align: left; font-family: var(--font-mono); font-size: .6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-quiet); padding-bottom: .75rem; }
+table.cond th {
+  text-align: left; font-family: var(--font-mono); font-size: .6875rem; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-quiet);
+  padding: .625rem 1rem .625rem 0; border-bottom: 1px solid var(--line);
+}
+table.cond td { padding: 1.375rem 1rem 1.375rem 0; border-bottom: var(--rail); vertical-align: top; }
+table.cond td:first-child { width: 8%; }
+table.cond td:nth-child(2) { width: 34%; }
+table.cond .ct { font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; }
+table.cond .cb { color: var(--text-muted); font-size: .875rem; line-height: 1.6; margin-top: .5rem; max-width: 44ch; }
+table.cond .kidx { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; color: var(--text-quiet); letter-spacing: -0.02em; }
+table.cond td.kost { color: var(--text-muted); font-size: .8125rem; }
+
+/* fragments (shared app grammar, tighter here) */
+.frag { background: var(--panel); border: 1px solid var(--line-soft); border-radius: calc(var(--seed-radius) - 4px); padding: .8125rem .875rem .875rem; }
+.frag-k { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-family: var(--font-mono); font-size: .5625rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+.frag-k svg { width: 12px; height: 12px; stroke-width: 2.2; vertical-align: -1px; margin-right: .3125rem; }
+.pill { display: inline-flex; border-radius: 9999px; padding: .0625rem .4375rem; font-family: var(--font-mono); font-size: .5rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: color-mix(in srgb, var(--seed-fg) 9%, transparent); color: var(--text-muted); }
+.frag h4 { margin: .4375rem 0 0; font-size: .875rem; font-weight: 600; letter-spacing: -0.008em; line-height: 1.35; }
+.mrow { display: flex; gap: .375rem; font-size: .6875rem; line-height: 1.55; }
+.mrow .k { color: var(--text-muted); }
+.mrow .ar { font-family: var(--font-mono); font-size: .5625rem; }
+.mrow .v { color: var(--seed-fg); }
+.nested { border-radius: calc(var(--seed-radius) - 6px); padding: .5rem .625rem; margin-top: .5rem; display: grid; gap: .25rem; }
+.note { margin-top: .5rem; font-size: .75rem; line-height: 1.55; color: color-mix(in srgb, var(--seed-fg) 88%, var(--seed-bg)); }
+.note .mk { font-family: var(--font-mono); font-size: .5625rem; margin-right: .3125rem; }
+.bars { display: grid; gap: .5rem; margin-top: .5rem; }
+.bar-head { display: flex; align-items: center; gap: .5rem; }
+.bar-name { width: 5.5rem; flex: none; font-family: var(--font-mono); font-size: .5rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-quiet); }
+.bar-track { flex: 1; height: 5px; background: color-mix(in srgb, var(--seed-fg) 11%, transparent); border-radius: 9999px; overflow: hidden; }
+.bar-score { width: 1.5rem; text-align: right; font-family: var(--font-mono); font-size: .625rem; font-weight: 700; }
+.bar-why { margin-left: 6rem; font-size: .625rem; color: var(--text-muted); line-height: 1.45; }
+.chips { display: flex; flex-wrap: wrap; gap: .3125rem; margin-top: .5rem; }
+.chip { border: 1px solid var(--line-soft); background: color-mix(in srgb, var(--seed-raised) 60%, var(--seed-bg)); border-radius: 9999px; padding: .0625rem .4375rem; font-family: var(--font-mono); font-size: .5625rem; color: var(--text-muted); }
+.chip b { color: var(--seed-ok); font-weight: 700; }
+.fresh { font-family: var(--font-mono); font-size: .5rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-quiet); margin-top: .5rem; }
+.cta-tag { display: inline-block; margin-top: .625rem; font-size: .6875rem; font-weight: 550; padding: .25rem .5rem; border-radius: calc(var(--seed-radius) - 6px); }
+
+/* ── bays ────────────────────────────────────────────────────── */
+.bays { border-top: var(--rail); }
+.bay {
+  display: grid; grid-template-columns: 12rem minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 0; border-bottom: var(--rail);
+  transition: background .18s ease;
+}
+.bay:hover { background: color-mix(in srgb, var(--seed-fg) 2.5%, transparent); }
+.bay-idx { padding: 2.25rem 1.5rem 2.25rem var(--gutter); border-right: var(--rail); }
+.bay-idx .num { font-family: var(--font-mono); font-size: 2.5rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+.bay-idx .tag { margin-top: .875rem; display: block; }
+.bay-body { padding: 2.25rem 1.5rem; border-right: var(--rail); }
+.bay-body h3 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.024em; line-height: 1.1; margin: 0; }
+.bay-body p.explain { color: var(--text-muted); font-size: .9375rem; line-height: 1.6; margin-top: 1rem; max-width: 46ch; }
+.bay-meta { margin-top: 1.5rem; display: grid; gap: .5rem; }
+.bay-meta .bm { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: 1rem; font-size: .8125rem; align-items: baseline; }
+.bay-meta .bm dt { font-family: var(--font-mono); font-size: .5rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-quiet); }
+.bay-meta .bm dd { margin: 0; color: var(--text-muted); }
+.bay-art { padding: 2.25rem var(--gutter) 2.25rem 1.5rem; }
+
+/* ── timeline rail ───────────────────────────────────────────── */
+.timeline { padding: calc(64px * var(--density)) var(--gutter); border-bottom: var(--rail); }
+.tl-wrap { margin-top: 2.25rem; }
+.tl-wrap svg { width: 100%; height: auto; display: block; }
+.tl-cap { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 1.25rem; }
+.tl-cap span { font-family: var(--font-mono); font-size: .5625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-quiet); }
+.tl-wrap svg text { font-family: var(--font-mono); letter-spacing: 1.4px; font-variant-numeric: tabular-nums; }
+.tl-track { stroke: var(--line-hard); stroke-width: 1; }
+.tl-dash { stroke: var(--seed-warn); stroke-width: 1; stroke-dasharray: 4 5; }
+.tl-name { fill: var(--seed-fg); font-size: 11px; }
+.tl-sub { fill: var(--text-quiet); font-size: 11px; }
+.tl-lead { fill: var(--seed-warn); font-size: 11px; }
+.m-primary { fill: var(--seed-primary); }
+.m-ok { fill: var(--seed-ok); }
+.m-warn { fill: var(--seed-warn); }
+
+/* ── honest rails ────────────────────────────────────────────── */
+.honest { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: var(--rail); border-left: 0; }
+.honest > div { padding: 1.75rem 1.5rem; border-left: var(--rail); }
+.honest h3 { font-size: 1rem; font-weight: 600; letter-spacing: -0.012em; margin-top: .75rem; line-height: 1.3; }
+.honest p { color: var(--text-muted); font-size: .8125rem; line-height: 1.6; margin-top: .5rem; }
+.locked {
+  margin-top: 2.5rem; padding: 1.5rem var(--gutter); border-top: var(--rail);
+  display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 3rem; align-items: start;
+}
+.locked h3 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.015em; margin: .75rem 0 0; }
+.locked ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; }
+.locked li { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr); gap: .75rem; font-size: .875rem; color: var(--text-muted); line-height: 1.55; }
+.locked li i { font-family: var(--font-mono); font-style: normal; font-size: .625rem; color: var(--seed-danger); }
+.locked .lockline {
+  grid-column: 1 / -1; padding-top: 1.25rem; border-top: var(--rail);
+  font-family: var(--font-mono); font-size: .75rem; letter-spacing: 0.06em; color: var(--seed-fg);
+}
+
+/* ── sample bag ──────────────────────────────────────────────── */
+.stackgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line-soft); border: var(--rail); }
+.stackgrid .frag { border: 0; border-radius: 0; background: var(--seed-bg); }
+.stackgrid .span3 { grid-column: span 3; }
+.stackgrid .span2 { grid-column: span 2; }
+.bagnote { margin-top: 1rem; font-size: .75rem; color: var(--text-quiet); max-width: 76ch; }
+
+/* ── closing board ───────────────────────────────────────────── */
+.close {
+  border-bottom: var(--rail);
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+  background: color-mix(in srgb, var(--seed-primary) 5%, transparent);
+}
+.close-l { padding: calc(80px * var(--density)) var(--gutter); border-right: var(--rail); }
+.close-r { padding: calc(80px * var(--density)) var(--gutter); }
+.form-lbl { font-family: var(--font-mono); font-size: .5625rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-quiet); display: block; }
+.field { display: flex; gap: .5rem; margin-top: .625rem; flex-wrap: wrap; }
+.field input {
+  flex: 1 1 12rem; min-width: 0; background: var(--seed-bg); border: 1px solid var(--line-hard);
+  border-radius: calc(var(--seed-radius) - 6px); color: var(--seed-fg);
+  padding: .6875rem .8125rem; font-family: var(--font-ui); font-size: .875rem;
+}
+.field input::placeholder { color: var(--text-quiet); }
+.field input:focus { outline: none; border-color: var(--seed-primary); box-shadow: 0 0 0 3px var(--tint-primary); }
+.msg { font-size: .75rem; margin-top: .625rem; min-height: 1.2em; }
+.msg[data-state="error"] { color: var(--seed-danger); }
+.msg[data-state="ok"] { color: var(--seed-ok); }
+.fineprint { font-size: .6875rem; color: var(--text-quiet); line-height: 1.6; margin-top: 1rem; max-width: 42ch; }
+.alt { font-family: var(--font-mono); font-size: .5625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-top: 1rem; display: flex; gap: .5rem; align-items: center; }
+.alt button { all: unset; cursor: pointer; color: var(--seed-fg); border-bottom: 1px solid var(--line-hard); }
+.alt button:focus-visible { outline: 2px solid color-mix(in srgb, var(--seed-primary) 80%, var(--seed-fg)); outline-offset: 3px; }
+
+/* ── footer ──────────────────────────────────────────────────── */
+.foot { padding: 3rem var(--gutter) 2rem; }
+.foot-mark {
+  font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.14em;
+  font-size: clamp(2.5rem, 9vw, 7rem); line-height: .9; color: color-mix(in srgb, var(--seed-fg) 12%, transparent);
+  text-transform: uppercase;
+}
+.foot-grid { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; margin-top: 1.5rem; padding-top: 1.25rem; border-top: var(--rail); }
+.foot-grid p { font-size: .75rem; color: var(--text-quiet); max-width: 52ch; }
+.foot-links { display: flex; gap: 1.25rem; }
+.foot-links a { font-family: var(--font-mono); font-size: .5625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-quiet); }
+.foot-links a:hover { color: var(--seed-fg); }
+
+/* mobile bar */
+.mbar {
+  position: fixed; inset-inline: 0; bottom: 0; display: none; align-items: center; gap: .75rem;
+  padding: .5rem var(--gutter); background: color-mix(in srgb, var(--seed-bg) 96%, var(--seed-fg));
+  border-top: var(--rail); z-index: 40;
+}
+.mbar span { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: .5625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-quiet); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mbar .state-led { flex: 0 0 auto; }
+
+/* motion */
+@media (prefers-reduced-motion: no-preference) {
+  .fade { opacity: 0; transition: opacity .55s ease; }
+  .fade.in { opacity: 1; }
+  .blink { animation: bk 1.1s steps(2, start) infinite; }
+  @keyframes bk { 50% { opacity: .2; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  .fade { opacity: 1; }
+}
+
+/* responsive */
+@media (max-width: 1080px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-l { border-right: 0; border-bottom: var(--rail); }
+  .hero-l, .hero-r { padding-block: calc(52px * var(--density)); }
+  .close { grid-template-columns: 1fr; }
+  .close-l { border-right: 0; border-bottom: var(--rail); }
+  .bay { grid-template-columns: 9rem minmax(0, 1fr); }
+  .bay-art { grid-column: 1 / -1; border-top: var(--rail); padding: 1.5rem var(--gutter); }
+  .honest { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .band-head { grid-template-columns: 1fr; gap: 1.25rem; }
+  .stackgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stackgrid .span3 { grid-column: span 2; }
+  .stackgrid .span2 { grid-column: span 2; }
+}
+@media (max-width: 860px) {
+  .board { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .board > * { border-left: var(--rail); border-top: var(--rail); }
+  .board > :nth-child(-n+3) { border-top: 0; }
+  .board > :nth-child(3n+1) { border-left: 0; }
+  .topbar nav { display: none; }
+  table.cond thead { display: none; }
+  table.cond tr { display: block; border-bottom: var(--rail); padding-block: 1rem; }
+  table.cond td { display: block; border: 0; padding: .375rem 0 .375rem 8.75rem; width: auto !important; position: relative; }
+  table.cond td[data-head]::before {
+    content: attr(data-head); position: absolute; left: 0; top: .6875rem; width: 8rem;
+    font-family: var(--font-mono); font-size: .625rem; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-quiet);
+  }
+  table.cond td:first-child { padding-left: 0; padding-top: 0; }
+}
+@media (max-width: 640px) {
+  :root { --gutter: 20px; }
+  .mbar { display: flex; }
+  body { padding-bottom: 60px; }
+  .band { padding-block: calc(56px * var(--density)); }
+  .bay { grid-template-columns: 1fr; }
+  .bay-idx { border-right: 0; border-bottom: var(--rail); display: flex; align-items: baseline; gap: 1rem; padding-block: 1.25rem; }
+  .bay-idx .num { font-size: 1.75rem; }
+  .bay-idx .tag { margin-top: 0; }
+  .bay-body { border-right: 0; border-bottom: var(--rail); padding-block: 1.5rem; }
+  .bay-art { padding-block: 1.5rem; }
+  .honest { grid-template-columns: 1fr; }
+  .honest > div { border-left: 0; border-top: var(--rail); }
+  .honest > div:first-child { border-top: 0; }
+  .locked { grid-template-columns: 1fr; gap: 1.25rem; }
+  .stackgrid { grid-template-columns: 1fr; }
+  .stackgrid .frag { grid-column: auto !important; }
+  .timeline svg { min-width: 700px; }
+  .tl-wrap { overflow-x: auto; }
+  .phone { margin: 1.25rem auto 0; }
+  .hero-l, .hero-r { padding-block: calc(44px * var(--density)); }
+  .topbar { gap: .625rem; }
+  .topbar .state-led { display: none; }
+  .topbar .actions { gap: .625rem; }
+  table.cond td { padding-left: 0; }
+  table.cond td[data-head]::before { position: static; width: auto; display: block; margin-bottom: .375rem; }
+}
+@media (max-width: 390px) {
+  .board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .board > * { border-left: var(--rail); border-top: var(--rail); }
+  .board > :nth-child(-n+2) { border-top: 0; }
+  .board > :nth-child(odd) { border-left: 0; }
+  .hero-cta .btn { flex: 1 1 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="topbar" data-component="Top Bar" data-od-id="header">
+  <span class="wordmark">Caddie</span>
+  <nav aria-label="Board sections" data-component="Board Nav">
+    <a href="#vet">01 Vet</a>
+    <a href="#ship">02 Ship</a>
+    <a href="#judge">03 Judge</a>
+    <a href="#bag">The bag</a>
+    <a href="#honest">Honesty</a>
+  </nav>
+  <div class="actions">
+    <span class="state-led" aria-label="Status: logged out"><i aria-hidden="true"></i>logged out</span>
+    <a class="link-quiet" href="#start">Log in</a>
+    <a class="btn btn-key" href="#start">Create your bag</a>
+  </div>
+</div>
+
+<main id="main" data-component="Board Body" data-od-id="main">
+  <!-- BOARD STRIP ─────────────────────────────────────────────── -->
+  <div class="board" role="region" aria-label="Sample bag status, each cell links to the section that proves it" data-component="Board Strip" data-od-id="board-strip">
+    <a href="#bag"><span class="lbl mono">Bag</span><span class="val mono">build with ai · basics</span><span class="proof">→ 06 the card · sample</span></a>
+    <a href="#ship"><span class="lbl mono">Clock</span><span class="val mono num hue-warn">T-<span id="cd">31</span>d</span><span class="proof">→ 02 plan &amp; ship</span></a>
+    <a href="#vet"><span class="lbl mono">Verdict</span><span class="val mono hue-ok">strong fit</span><span class="proof">→ 01 find &amp; vet</span></a>
+    <a href="#ship"><span class="lbl mono">Scope</span><span class="val mono hue-ok">hold</span><span class="proof">→ 02 plan &amp; ship</span></a>
+    <a href="#vet"><span class="lbl mono">Rule deltas</span><span class="val mono num hue-primary">01</span><span class="proof">→ 01 find &amp; vet</span></a>
+    <a href="#honest"><span class="lbl mono">Receipts</span><span class="val mono">6 pinned</span><span class="proof">→ 05 keep it honest</span></a>
+  </div>
+
+  <!-- HERO ────────────────────────────────────────────────────── -->
+  <section class="hero" aria-labelledby="hero-h" data-component="Hero Board" data-od-id="hero">
+    <div class="hero-l">
+      <p class="eyebrow"><span class="idx mono">00 / claim</span><span class="rule" aria-hidden="true"></span><span class="lbl mono">an ai chief of staff for hackathon builders</span></p>
+      <h1 id="hero-h" class="h1">It carries the bag.<br />You swing.</h1>
+      <p class="lede">Entries rarely die from bad code. They die from fine print nobody read, scope that ate the weekend, and a pitch that landed too late. Caddie works the three of them so the hours you have go into the build.</p>
+      <div class="hero-cta">
+        <a class="btn btn-key" href="#start">Create your bag</a>
+        <a class="btn btn-line" href="#bag">See a real bag</a>
+        <a class="link-quiet" href="#vet">Skip to the receipts</a>
+      </div>
+    </div>
+    <div class="hero-r">
+      <div class="devices fade">
+        <div class="shot">
+          <div class="bar" aria-hidden="true"><i></i><i></i><i></i><span class="host mono">caddie.jamalibrahim.dev</span></div>
+          <img src="assets/app-preview.png" width="1280" height="720"
+               alt="The Card stack inside the Caddie workspace: amber deadline card with a 31-day countdown, green fit verdict card, and a judge card with four score bars." />
+        </div>
+        <div class="phone" role="img" aria-label="Concept rendering of the mobile card stack, re-flowed to one column: an amber deadline card reading 31 days to submit by October 26 at 5pm EDT with your local time underneath, a green fit verdict card reading eligible and fits your week, and a red rules fault card reading no deadline parsed.">
+          <div class="phone-notch" aria-hidden="true"></div>
+          <div class="phone-screen">
+            <p class="ph-status"><span>18:42</span><span>1 card needs you</span></p>
+            <div class="frag">
+              <p class="frag-k"><span style="color:var(--seed-warn)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>clock · deadline</span><span class="pill" style="background:var(--tint-warn);color:var(--seed-warn)">locked</span></p>
+              <h4>31d — submit Oct 26 · 5pm EDT</h4>
+              <p class="mrow"><span class="k">Your time</span><span class="ar" style="color:var(--seed-warn)">→</span><span class="v">Sun 10:00</span></p>
+              <p class="fresh">· updated 3h ago</p>
+            </div>
+            <div class="frag">
+              <p class="frag-k"><span style="color:var(--seed-ok)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.5l2.5 2.5 4.5-5" /></svg>verdict · fit</span><span class="pill" style="background:var(--tint-ok);color:var(--seed-ok)">strong fit</span></p>
+              <h4>Eligible, and it fits your week</h4>
+              <p class="mrow"><span class="k">Hours</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">12/wk clears it</span></p>
+              <p class="fresh">· updated 6h ago</p>
+            </div>
+            <div class="frag">
+              <p class="frag-k"><span style="color:var(--seed-danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3 2 20h20z" /><path d="M12 10v4M12 17.5v.5" /></svg>fault · rules</span><span class="pill" style="background:var(--tint-danger);color:var(--seed-danger)">blocked</span></p>
+              <h4>No deadline parsed yet</h4>
+              <p class="mrow"><span class="k">Meaning</span><span class="ar" style="color:var(--seed-danger)">→</span><span class="v">unknown</span></p>
+              <p class="fresh">· updated just now</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="devices-cap">Desktop: the real workspace. Phone: the same stack re-flowed to one column — a concept rendering built from the shipped card states, not a screenshot.</p>
+      <div class="readout">
+        <div class="r-row"><span class="lbl mono">Track</span><span class="val mono">the card · one contest at a time</span></div>
+        <div class="r-row"><span class="lbl mono">Clear</span><span class="val mono">clock · verdict · docs · repo · scorecard</span></div>
+        <div class="r-row"><span class="lbl mono">Receipt</span><span class="val mono">every card stamped with its age<span class="blink" aria-hidden="true"> ▍</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONDITIONS TABLE ────────────────────────────────────────── -->
+  <section class="band" aria-labelledby="cond-h" data-component="Failure Modes Board" data-od-id="conditions">
+    <div class="band-head">
+      <div>
+        <p class="lbl mono" style="margin-bottom:1rem">01 / conditions report</p>
+        <h2 id="cond-h" class="h2">Three ways an entry dies.<br />Each one has an artifact.</h2>
+      </div>
+      <p class="lede">Caddie isn't a second pair of hands for your code. It takes the operational work that steals the first twenty hours, and it leaves a readout behind for everything it claims.</p>
+    </div>
+
+    <table class="cond">
+      <caption>Sample conditions · Build With AI: Basics</caption>
+      <thead>
+        <tr><th scope="col">Mode</th><th scope="col">What it looks like</th><th scope="col">Caddie's artifact</th><th scope="col">What it cost you</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="kidx">01</span></td>
+          <td data-head="What it looks like">
+            <p class="ct">You find out you were never eligible, on day six.</p>
+            <p class="cb">Rules clause that decides your weekend gets distilled, cited, and flagged for your country, stack and hours — with the verbatim text sitting underneath.</p>
+          </td>
+          <td data-head="Caddie's artifact">
+            <div class="frag" data-component="Fragment · Fit">
+              <p class="frag-k"><span style="color:var(--seed-ok)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M8.5 12.5l2.5 2.5 4.5-5" /></svg>verdict · fit</span><span class="pill" style="background:var(--tint-ok);color:var(--seed-ok)">strong fit</span></p>
+              <h4>Strong fit — 4 days left to decide</h4>
+              <div class="nested" style="background:var(--tint-ok)">
+                <p class="mrow"><span class="k">Country</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">Nigeria · eligible</span></p>
+                <p class="mrow"><span class="k">Hours</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">12/wk clears a 6-day window</span></p>
+                <p class="mrow"><span class="k">Risk</span><span class="ar" style="color:var(--seed-warn)">→</span><span class="v">pre-existing code barred</span></p>
+              </div>
+              <p class="note"><span class="mk" style="color:var(--seed-ok)">▸</span>Build clean. Snapshot and rules URL are pinned if you need to argue it.</p>
+              <p class="fresh">· updated 6h ago</p>
+            </div>
+          </td>
+          <td class="kost" data-head="What it cost you">A finished build that can't be submitted — or can't be paid out.</td>
+        </tr>
+        <tr>
+          <td><span class="kidx">02</span></td>
+          <td data-head="What it looks like">
+            <p class="ct">The idea outgrows the hours you have.</p>
+            <p class="cb">An interview turns a rough idea into scope.md, prd.md and spec.md, then pushes a private repo with a license. The scope line gets written at the same time, so feature fourteen arrives as a flag, not a fait accompli.</p>
+          </td>
+          <td data-head="Caddie's artifact">
+            <div class="frag" data-component="Fragment · Plan + Repo">
+              <p class="frag-k"><span style="color:var(--seed-ok)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" /></svg>plan · docs</span><span class="pill" style="background:var(--tint-ok);color:var(--seed-ok)">ready</span></p>
+              <h4>Scope cut to what one person can ship</h4>
+              <div class="chips"><span class="chip"><b>✓</b> scope.md</span><span class="chip"><b>✓</b> prd.md</span><span class="chip"><b>✓</b> spec.md</span></div>
+              <p class="mrow" style="margin-top:.625rem"><span class="k">Repo</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">your account · private</span></p>
+              <p class="mrow"><span class="k">License</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">MIT, committed</span></p>
+              <p class="mrow"><span class="k">You ran</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">zero git commands</span></p>
+              <span class="cta-tag" style="background:var(--seed-ok);color:var(--on-key)">Open repo</span>
+            </div>
+          </td>
+          <td class="kost" data-head="What it cost you">Five half-things instead of one finished thing.</td>
+        </tr>
+        <tr>
+          <td><span class="kidx">03</span></td>
+          <td data-head="What it looks like">
+            <p class="ct">You learn what was weak after the results post.</p>
+            <p class="cb">Caddie scores the entry against the contest's own criteria, ranks the risks, and attaches a fix to every low score. Judges won't run your code — they watch it.</p>
+          </td>
+          <td data-head="Caddie's artifact">
+            <div class="frag" data-component="Fragment · Judge">
+              <p class="frag-k"><span style="color:var(--seed-warn)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3v18M5 7l7-2 7 2M5 7l-2 6a3.5 3.5 0 0 0 7 0L7 7M17 7l-2 6a3.5 3.5 0 0 0 7 0l-2-6" /></svg>judge · watch</span><span class="pill" style="background:var(--tint-warn);color:var(--seed-warn)">attention</span></p>
+              <h4>Presentation is dragging the score</h4>
+              <div class="bars">
+                <div><div class="bar-head"><span class="bar-name">Design</span><span class="bar-track"><span style="display:block;height:100%;width:70%;background:var(--seed-ok)"></span></span><span class="bar-score" style="color:var(--seed-ok)">7</span></div></div>
+                <div><div class="bar-head"><span class="bar-name">Impact</span><span class="bar-track"><span style="display:block;height:100%;width:60%;background:var(--seed-warn)"></span></span><span class="bar-score" style="color:var(--seed-warn)">6</span></div></div>
+                <div><div class="bar-head"><span class="bar-name">Innovation</span><span class="bar-track"><span style="display:block;height:100%;width:80%;background:var(--seed-ok)"></span></span><span class="bar-score" style="color:var(--seed-ok)">8</span></div></div>
+                <div><div class="bar-head"><span class="bar-name">Presentation</span><span class="bar-track"><span style="display:block;height:100%;width:40%;background:var(--seed-danger)"></span></span><span class="bar-score" style="color:var(--seed-danger)">4</span></div><p class="bar-why">Fix: one problem slide, a 90-second reel, a live URL.</p></div>
+              </div>
+              <p class="note"><span class="mk" style="color:var(--seed-warn)">▸</span>Presentation carries 25% of this scorecard.</p>
+            </div>
+          </td>
+          <td class="kost" data-head="What it cost you">A strong build that reads as a rough one.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- BAYS ────────────────────────────────────────────────────── -->
+  <div class="bays" data-component="Board Bays" data-od-id="bays">
+    <article class="bay fade" id="vet">
+      <div class="bay-idx"><span class="num">01</span><span class="tag lbl mono">find &amp; vet</span></div>
+      <div class="bay-body">
+        <h3>Know if you can enter before you invest an hour.</h3>
+        <p class="explain">Devpost search ranked against your stack and your hours. Fine print distilled with citations, eligibility flagged for your country, deadlines shown in your timezone.</p>
+        <dl class="bay-meta">
+          <div class="bm"><dt>Caddie asks</dt><dd>Country, stack, hours per week — the onboarding brief.</dd></div>
+          <div class="bm"><dt>Caddie returns</dt><dd>Ranked contests, a fit verdict, a cited rules digest.</dd></div>
+          <div class="bm"><dt>You keep</dt><dd>The verbatim clause and the URL it came from.</dd></div>
+        </dl>
+      </div>
+      <div class="bay-art">
+        <div class="frag" data-component="Artifact · Rules Digest">
+          <p class="frag-k"><span style="color:var(--seed-primary)">rules · digest</span><span class="pill" style="background:var(--tint-primary);color:var(--seed-primary)">cited</span></p>
+          <h4>One clause moved since last read</h4>
+          <p class="mrow" style="margin-top:.5rem"><span class="k">§4.2</span><span class="ar" style="color:var(--seed-primary)">→</span><span class="v">"Pre-existing code is out of bounds."</span></p>
+          <p class="mrow"><span class="k">Delta</span><span class="ar" style="color:var(--seed-primary)">→</span><span class="v">tightened · ideas still allowed</span></p>
+          <p class="mrow"><span class="k">Receipt</span><span class="ar" style="color:var(--seed-primary)">→</span><span class="v">snapshot + rules URL retained</span></p>
+          <p class="fresh">· rechecked 18:40 · source pinned</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="bay fade" id="ship">
+      <div class="bay-idx"><span class="num">02</span><span class="tag lbl mono">plan &amp; ship</span></div>
+      <div class="bay-body">
+        <h3>Idea in, submission-ready repo out.</h3>
+        <p class="explain">The interview produces scope.md, prd.md and spec.md, then a private GitHub repo with a license — pushed without you touching git. A locked scope line says what is not in the bag.</p>
+        <dl class="bay-meta">
+          <div class="bm"><dt>Caddie asks</dt><dd>One idea, in plain language, over a short interview.</dd></div>
+          <div class="bm"><dt>Caddie returns</dt><dd>Three planning docs and a private repo, license committed.</dd></div>
+          <div class="bm"><dt>You keep</dt><dd>The scope line — and a flag when something tries to grow.</dd></div>
+        </dl>
+      </div>
+      <div class="bay-art">
+        <div class="frag" data-component="Artifact · Scope Line">
+          <p class="frag-k"><span style="color:var(--seed-ok)">ideate · scope</span><span class="pill" style="background:var(--tint-ok);color:var(--seed-ok)">locked</span></p>
+          <h4>Locked line: brief + repo + review</h4>
+          <p class="mrow" style="margin-top:.5rem"><span class="k">Cut</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">scheduler · push · auth · MLH crawl</span></p>
+          <p class="mrow"><span class="k">Build fits</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">12 hrs × 6 days, with slack</span></p>
+          <p class="note"><span class="mk" style="color:var(--seed-ok)">▸</span>I'll flag anything that tries to grow into the bag.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="bay fade" id="judge">
+      <div class="bay-idx"><span class="num">03</span><span class="tag lbl mono">face the judges</span></div>
+      <div class="bay-body">
+        <h3>Get judged before the judges do.</h3>
+        <p class="explain">A scorecard against the real criteria — Design, Impact, Innovation, Presentation — with the risks ranked and the fix attached to each one. Re-run it any time before the clock closes.</p>
+        <dl class="bay-meta">
+          <div class="bm"><dt>Caddie asks</dt><dd>The contest's criteria and weights, read off the rules.</dd></div>
+          <div class="bm"><dt>Caddie returns</dt><dd>A scorecard, ranked risks, one fix per risk.</dd></div>
+          <div class="bm"><dt>You keep</dt><dd>The reviewed version — before the deadline, not after.</dd></div>
+        </dl>
+      </div>
+      <div class="bay-art">
+        <div class="frag" data-component="Artifact · Review Pass">
+          <p class="frag-k"><span style="color:var(--seed-warn)">judge · review</span><span class="pill" style="background:var(--tint-warn);color:var(--seed-warn)">2 fixes open</span></p>
+          <h4>Will It Ship review · Oct 22</h4>
+          <p class="mrow" style="margin-top:.5rem"><span class="k">Open</span><span class="ar" style="color:var(--seed-warn)">→</span><span class="v">record demo · add live URL</span></p>
+          <p class="mrow"><span class="k">Clear</span><span class="ar" style="color:var(--seed-warn)">→</span><span class="v">repo · license · docs · form</span></p>
+          <p class="fresh">· re-run any time before the clock closes</p>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- TIMELINE ────────────────────────────────────────────────── -->
+  <section class="timeline" aria-labelledby="tl-h" data-component="Bag Timeline" data-od-id="timeline">
+    <p class="lbl mono">04 / the bag, end to end</p>
+    <h2 id="tl-h" class="h2" style="margin-top:1rem;max-width:22ch">Five markers, one clock.</h2>
+    <div class="tl-wrap fade">
+      <svg viewBox="0 0 1200 132" role="img" aria-label="Timeline from brief, to vet, to plan, to push, to submit, spanning 31 days to the deadline.">
+        <line class="tl-track" x1="8" y1="88" x2="1192" y2="88" />
+        <line class="tl-dash" x1="820" y1="88" x2="1100" y2="88" />
+        <g>
+          <circle class="m-primary" cx="60" cy="88" r="4.5" />
+          <text class="tl-name" x="60" y="64" text-anchor="middle">BRIEF</text>
+          <text class="tl-sub" x="60" y="112" text-anchor="middle">D-31 · country stack hours</text>
+        </g>
+        <g>
+          <circle class="m-primary" cx="300" cy="88" r="4.5" />
+          <text class="tl-name" x="300" y="64" text-anchor="middle">VET</text>
+          <text class="tl-sub" x="300" y="112" text-anchor="middle">D-31 · verdict strong fit</text>
+        </g>
+        <g>
+          <circle class="m-ok" cx="560" cy="88" r="4.5" />
+          <text class="tl-name" x="560" y="64" text-anchor="middle">PLAN</text>
+          <text class="tl-sub" x="560" y="112" text-anchor="middle">D-24 · scope.md prd.md spec.md</text>
+        </g>
+        <g>
+          <circle class="m-ok" cx="820" cy="88" r="4.5" />
+          <text class="tl-name" x="820" y="64" text-anchor="middle">PUSH</text>
+          <text class="tl-sub" x="820" y="112" text-anchor="middle">D-21 · private repo + MIT</text>
+        </g>
+        <g>
+          <rect class="m-warn" x="1096" y="76" width="4" height="24" />
+          <text class="tl-name" x="1192" y="64" text-anchor="end">SUBMIT</text>
+          <text class="tl-sub" x="1192" y="112" text-anchor="end">OCT 26 · 5PM EDT</text>
+        </g>
+        <text class="tl-lead" x="960" y="40" text-anchor="middle">REVIEW OCT 22 · T-31D TO DECIDE</text>
+      </svg>
+    </div>
+    <div class="tl-cap">
+      <span>markers · actual card states</span>
+      <span>clock · shown in your timezone</span>
+      <span>deltas · rules re-checked on a schedule</span>
+    </div>
+  </section>
+
+  <!-- HONESTY ─────────────────────────────────────────────────── -->
+  <section class="band" id="honest" aria-labelledby="hon-h" style="padding-bottom:calc(56px * var(--density))" data-component="Trust and Honesty" data-od-id="trust">
+    <div class="band-head">
+      <div>
+        <p class="lbl mono" style="margin-bottom:1rem">05 / keep it honest</p>
+        <h2 id="hon-h" class="h2">An AI that reads the rules can also misread them.</h2>
+      </div>
+      <p class="lede">So the product is built around being checkable rather than around sounding confident.</p>
+    </div>
+
+    <div class="honest">
+      <div>
+        <p class="lbl mono">summaries</p>
+        <h3>AI-read, never unsourced</h3>
+        <p>Every digest sits on the verbatim clause and the page it came from. Read the quote yourself before you burn a week.</p>
+      </div>
+      <div>
+        <p class="lbl mono">freshness</p>
+        <h3>Stamped with its age</h3>
+        <p>Each card carries the time it last updated. Three hours old says three hours old.</p>
+      </div>
+      <div>
+        <p class="lbl mono">re-check</p>
+        <h3>Changes become deltas</h3>
+        <p>The previous snapshot and source URL are retained, so a moved clause shows up as a delta you can see.</p>
+      </div>
+      <div>
+        <p class="lbl mono">privacy</p>
+        <h3>Your bag stays yours</h3>
+        <p>Contests, plan and tasks are private to your account. The repo lands in your own GitHub account and stays private.</p>
+      </div>
+    </div>
+
+    <div class="locked" data-component="Scope Line">
+      <div>
+        <p class="lbl mono">what caddie will not do</p>
+        <h3>The club stays in your hands.</h3>
+      </div>
+      <ul>
+        <li><i aria-hidden="true">✕</i><span>It will not swing for you — the build, the demo and the pitch are yours.</span></li>
+        <li><i aria-hidden="true">✕</i><span>It will not widen the bag on its own; the locked scope line flags anything that tries to grow.</span></li>
+        <li><i aria-hidden="true">✕</i><span>It will not call a rule it couldn't read "clear". A failed read shows up as a fault.</span></li>
+      </ul>
+      <p class="lockline">LOCKED LINE: BRIEF + REPO + REVIEW<span class="blink" aria-hidden="true"> ▍</span></p>
+    </div>
+  </section>
+
+  <!-- SAMPLE BAG ──────────────────────────────────────────────── -->
+  <section class="band" id="bag" aria-labelledby="bag-h" data-component="Sample Bag" data-od-id="sample-bag">
+    <div class="band-head">
+      <div>
+        <p class="lbl mono" style="margin-bottom:1rem">06 / the card</p>
+        <h2 id="bag-h" class="h2">One bag, the whole state of the entry.</h2>
+      </div>
+      <p class="lede">Ordered by what needs you next — clock first, then the verdict, then the work that is actually open.</p>
+    </div>
+
+    <div class="stackgrid">
+      <div class="frag span2" data-component="Card · Deadline">
+        <p class="frag-k"><span style="color:var(--seed-warn)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>clock · deadline</span><span class="pill" style="background:var(--tint-warn);color:var(--seed-warn)">locked</span></p>
+        <h4>Submit by Oct 26 · 5pm EDT — video is the artifact</h4>
+        <div class="nested" style="background:var(--tint-warn);display:flex;gap:1.25rem;align-items:center">
+          <p class="big" style="font-size:2rem;color:var(--seed-warn);margin:0">31<span style="font-size:.5em;letter-spacing:.1em">d</span></p>
+          <div>
+            <p class="mrow"><span class="k">Your time</span><span class="ar" style="color:var(--seed-warn)">→</span><span class="v">Sun 26 Oct, 10:00</span></p>
+            <p class="mrow"><span class="k">Review</span><span class="ar" style="color:var(--seed-warn)">→</span><span class="v">Oct 22</span></p>
+          </div>
+        </div>
+        <p class="note"><span class="mk" style="color:var(--seed-warn)">▸</span>Judges will not run your code. Presentation is 25% of the score.</p>
+        <p class="fresh">· updated 3h ago</p>
+      </div>
+
+      <div class="frag" data-component="Card · Rules Fault">
+        <p class="frag-k"><span style="color:var(--seed-danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3 2 20h20z" /><path d="M12 10v4M12 17.5v.5" /></svg>fault · rules</span><span class="pill" style="background:var(--tint-danger);color:var(--seed-danger)">blocked</span></p>
+        <h4>No deadline parsed from the rules yet</h4>
+        <p class="mrow" style="margin-top:.5rem"><span class="k">Page</span><span class="ar" style="color:var(--seed-danger)">→</span><span class="v">the Chip Challenge rules</span></p>
+        <p class="mrow"><span class="k">Meaning</span><span class="ar" style="color:var(--seed-danger)">→</span><span class="v">unknown, not "no deadline"</span></p>
+        <span class="cta-tag" style="background:var(--seed-danger);color:var(--on-key)">Retry in chat</span>
+      </div>
+
+      <div class="frag" data-component="Card · Fit">
+        <p class="frag-k"><span style="color:var(--seed-ok)">verdict · fit</span><span class="pill" style="background:var(--tint-ok);color:var(--seed-ok)">strong fit</span></p>
+        <h4>Eligible, and it fits your week</h4>
+        <p class="mrow" style="margin-top:.5rem"><span class="k">Stack</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">React + Python</span></p>
+        <p class="mrow"><span class="k">Payout</span><span class="ar" style="color:var(--seed-ok)">→</span><span class="v">wire to personal account</span></p>
+        <p class="fresh">· updated 6h ago</p>
+      </div>
+
+      <div class="frag" data-component="Card · Plan">
+        <p class="frag-k"><span style="color:var(--seed-ok)">plan · docs</span><span class="pill" style="background:var(--tint-ok);color:var(--seed-ok)">ready</span></p>
+        <h4>Build brief is signed off</h4>
+        <div class="chips"><span class="chip"><b>✓</b> scope.md</span><span class="chip"><b>✓</b> prd.md</span><span class="chip"><b>✓</b> spec.md</span></div>
+        <span class="cta-tag" style="background:var(--seed-ok);color:var(--on-key)">Read the plan</span>
+      </div>
+
+      <div class="frag" data-component="Card · Watch">
+        <p class="frag-k"><span style="color:var(--text-quiet)">watch · rules</span><span class="pill">quiet</span></p>
+        <h4>Nothing moved since yesterday</h4>
+        <p class="mrow" style="margin-top:.5rem"><span class="k">Last check</span><span class="ar">→</span><span class="v">18:40 · clean</span></p>
+        <p class="fresh">· low stakes, deliberately muted</p>
+      </div>
+    </div>
+    <p class="bagnote">Sample bag reconstructed from the repo's planning docs (scope.md · prd.md · spec.md) and the card states Caddie actually renders. Contest numbers are Devpost's, not ours.</p>
+  </section>
+
+  <!-- CLOSING ─────────────────────────────────────────────────── -->
+  <section class="close" id="start" aria-labelledby="close-h" data-component="Closing Board" data-od-id="closing-cta">
+    <div class="close-l">
+      <p class="lbl mono">07 / start here</p>
+      <h2 id="close-h" class="h2" style="margin-top:1.25rem;max-width:18ch">Put the bag down. Go build.</h2>
+      <p class="lede" style="margin-top:1.25rem">Register in 20 seconds. The first contest on the bag is vetted before you finish the onboarding brief.</p>
+    </div>
+    <div class="close-r">
+      <form id="signup-form" novalidate data-component="Signup Form" data-od-id="signup-form">
+        <label class="form-lbl" for="email">Email</label>
+        <div class="field">
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required />
+          <button class="btn btn-key" type="submit">Create your bag</button>
+        </div>
+        <p class="msg" id="signup-msg" role="status" aria-live="polite"></p>
+        <p class="fineprint">Summaries are AI-read and always carry the verbatim, cited rules underneath. Your bag is private to your account.</p>
+        <p class="alt">already on the bag?<button type="button" id="login-demo">log in</button></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="foot" data-component="Footer" data-od-id="footer">
+  <p class="foot-mark" aria-hidden="true">Caddie</p>
+  <div class="foot-grid">
+    <p>Built for Build With AI: Basics · Devpost Learn. The planning docs — scope.md, prd.md, spec.md — live in the repo with the code.</p>
+    <nav class="foot-links" aria-label="Footer" data-component="Footer Links">
+      <a href="https://devpost.com" target="_blank" rel="noreferrer">Devpost</a>
+      <a href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://caddie.jamalibrahim.dev">Open Caddie</a>
+    </nav>
+  </div>
+</footer>
+
+<div class="mbar" data-component="Mobile CTA Bar">
+  <span class="state-led" aria-label="Status: logged out"><i aria-hidden="true"></i>logged out</span>
+  <span>t-31d · oct 26 5pm</span>
+  <a class="btn btn-key" href="#start" style="padding:.4375rem .75rem;font-size:.75rem">Create your bag</a>
+</div>
+
+<script>
+(function () {
+  var form = document.getElementById("signup-form");
+  var msg = document.getElementById("signup-msg");
+  var email = document.getElementById("email");
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var v = (email.value || "").trim();
+      if (!v || v.indexOf("@") < 1) {
+        msg.textContent = "That email doesn't look right — check the address.";
+        msg.setAttribute("data-state", "error");
+        email.focus();
+        return;
+      }
+      msg.textContent = "Bag reserved. Check your inbox to set the password — nothing was sent in this concept build.";
+      msg.setAttribute("data-state", "ok");
+    });
+  }
+  var login = document.getElementById("login-demo");
+  if (login) {
+    login.addEventListener("click", function () {
+      msg.textContent = "Login form lives in the app — this is the marketing concept.";
+      msg.setAttribute("data-state", "ok");
+    });
+  }
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
+    }, { threshold: 0.06 });
+    document.querySelectorAll(".fade").forEach(function (el) { io.observe(el); });
+
+    var links = [].slice.call(document.querySelectorAll('.topbar nav a[href^="#"]'));
+    var spy = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var id = "#" + en.target.id;
+        links.forEach(function (a) {
+          if (a.getAttribute("href") === id) a.setAttribute("aria-current", "true");
+          else a.removeAttribute("aria-current");
+        });
+      });
+    }, { rootMargin: "-40% 0px -55% 0px" });
+    links.forEach(function (a) {
+      var t = document.querySelector(a.getAttribute("href"));
+      if (t) spy.observe(t);
+    });
+  } else {
+    document.querySelectorAll(".fade").forEach(function (el) { el.classList.add("in"); });
+  }
+})();
+</script>
+</body>
+</html>

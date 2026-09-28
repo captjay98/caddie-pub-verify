@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "caddie",
+  "compatibility_date": "2026-09-26",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/server.ts",
+  "routes": [{ "pattern": "caddie.jamalibrahim.dev", "custom_domain": true }],
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "caddie-db",
+      "database_id": "b572df28-cde8-41b1-bb73-fc2da641e0c6"
+    }
+  ],
+  "triggers": {
+    // Morning card / nightly re-check (spec.md > Cron Trigger)
+    "crons": ["0 7 * * *", "0 */12 * * *"]
+  }
+}

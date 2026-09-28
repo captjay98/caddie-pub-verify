@@ -1,0 +1,38 @@
+{
+  "name": "caddie",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run db:migrate && vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "bun run build && wrangler deploy -c dist/server/wrangler.json",
+    "probe:parallel": "bun scripts/probe-parallel.ts",
+    "db:migrate": "wrangler d1 migrations apply caddie-db --local",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^4.0.82",
+    "@ai-sdk/react": "^4.0.119",
+    "@tanstack/react-router": "^1.170.39",
+    "@tanstack/react-start": "^1.168.58",
+    "ai": "^7.0.116",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.60.2",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "5.9",
+    "vite": "^7.3.6",
+    "wrangler": "^4.141.0"
+  }
+}

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Caddie — PRD review</title>
+<style>
+  :root {
+    --bg:#090b10; --card:#101319; --elevated:#151922;
+    --fg:#f2f5fa; --fg2:#98a1b5; --fg3:#7d879a;
+    --primary:#4d9fff; --ok:#3ecf8e; --warn:#f0a83c; --danger:#ff7a83;
+    --border:rgba(255,255,255,0.13); --sub:rgba(255,255,255,0.07);
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:32px 22px 64px;
+    background:
+      radial-gradient(760px 300px at 50% -40px, rgba(77,159,255,0.13), transparent 70%),
+      linear-gradient(180deg,#0c121c,#0e1118 42%,#12100e);
+    color:var(--fg);
+    font:14px/1.5 Inter, system-ui, sans-serif;
+    min-height:100vh;
+  }
+  .wrap { max-width:960px; margin:0 auto; }
+  .tag {
+    display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10px;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--primary);
+    border:1px solid rgba(77,159,255,.35); background:rgba(77,159,255,.1);
+    padding:4px 10px; border-radius:999px; margin-bottom:14px;
+  }
+  h1 { font-family:"Space Grotesk",Inter,sans-serif; font-size:28px; margin:0 0 6px; letter-spacing:-.03em; }
+  .lead { color:var(--fg2); max-width:68ch; margin:0 0 8px; }
+  h2 { font-size:15px; margin:36px 0 12px; letter-spacing:-.01em; }
+  .card {
+    background:linear-gradient(180deg,#141821,#101319);
+    border:1px solid var(--border); border-radius:12px; padding:16px 18px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.055); margin-bottom:12px;
+  }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:720px) { .grid { grid-template-columns:1fr; } }
+  .k { font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg3); margin-bottom:8px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--sub); vertical-align:top; }
+  th { font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg3); }
+  td { color:var(--fg2); }
+  td strong { color:var(--fg); }
+  .chip { display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10px; padding:3px 8px; border-radius:999px; margin:0 6px 6px 0; }
+  .chip.ok { background:rgba(62,207,142,.12); color:var(--ok); border:1px solid rgba(62,207,142,.3); }
+  .chip.warn { background:rgba(240,168,60,.12); color:var(--warn); border:1px solid rgba(240,168,60,.3); }
+  .chip.blue { background:rgba(77,159,255,.12); color:var(--primary); border:1px solid rgba(77,159,255,.3); }
+  .chip.danger { background:rgba(255,122,131,.12); color:var(--danger); border:1px solid rgba(255,122,131,.3); }
+  details {
+    border:1px solid var(--border); border-radius:12px; background:var(--card);
+    padding:12px 16px; margin-bottom:8px;
+  }
+  details summary {
+    cursor:pointer; font-weight:600; list-style:none; display:flex; justify-content:space-between;
+  }
+  details summary::-webkit-details-marker { display:none; }
+  details summary::after { content:"+"; color:var(--fg3); font-family:"IBM Plex Mono",monospace; }
+  details[open] summary::after { content:"−"; }
+  details .body { margin-top:12px; color:var(--fg2); }
+  ul { margin:8px 0 0; padding-left:18px; }
+  li { margin:5px 0; }
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  @media (max-width:720px) { .steps { grid-template-columns:1fr 1fr; } }
+  .step {
+    background:var(--elevated); border:1px solid var(--sub); border-radius:10px; padding:12px;
+  }
+  .step .n {
+    width:22px;height:22px;border-radius:999px;background:var(--primary);color:#07101a;
+    font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;
+  }
+  .step .t { font-size:12px; font-weight:650; margin:6px 0 2px; }
+  .step .d { font-size:11px; color:var(--fg3); }
+  svg { width:100%; height:auto; border:1px solid var(--sub); border-radius:12px; background:#101319; }
+  .swatches { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .sw { width:88px; }
+  .sw i { display:block; height:36px; border-radius:8px; border:1px solid var(--border); }
+  .sw span { font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--fg3); display:block; margin-top:4px; }
+  .telemetry {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0;
+  }
+  .tcell { background:#1a1e27; border:1px solid #2a2e38; border-radius:8px; padding:10px; }
+  .tcell .l { font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.12em; color:#7d879a; }
+  .tcell .v { font-family:"Space Grotesk",sans-serif; font-size:22px; font-weight:700; letter-spacing:-.03em; }
+  .tcell .v.hot { color:var(--warn); }
+  .tcell .v.ok { color:var(--ok); }
+  footer { margin-top:40px; color:var(--fg3); font-family:"IBM Plex Mono",monospace; font-size:11px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tag">prd · draft · review companion</div>
+  <h1>Caddie — product requirements</h1>
+  <p class="lead">Agent caddie for hackathons: discover → decide → ideate → plan → GitHub repo → judge review. It carries the bag; you swing.</p>
+  <p class="lead" style="color:var(--fg3)">Canonical: <code>devpost/prd.md</code> · Look locked as pit layout + halo colors.</p>
+
+  <h2>Core journey</h2>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t">Open</div><div class="d">The Card + chat</div></div>
+    <div class="step"><div class="n">2</div><div class="t">Discover</div><div class="d">Devpost, fit-ranked</div></div>
+    <div class="step"><div class="n">3</div><div class="t">Decide</div><div class="d">Cited rules + verdict</div></div>
+    <div class="step"><div class="n">4</div><div class="t">Ideate</div><div class="d">One kernel + scope line</div></div>
+    <div class="step"><div class="n">5</div><div class="t">Plan</div><div class="d">scope · prd · spec</div></div>
+    <div class="step"><div class="n">6</div><div class="t">Start</div><div class="d">GitHub repo + docs</div></div>
+    <div class="step"><div class="n">7</div><div class="t">Build</div><div class="d">You swing</div></div>
+    <div class="step"><div class="n">8</div><div class="t">Review</div><div class="d">Judge-style scorecard</div></div>
+    <div class="step"><div class="n">9</div><div class="t">Re-check</div><div class="d">What changed</div></div>
+  </div>
+
+  <h2>Layout map</h2>
+  <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Caddie layout">
+    <defs>
+      <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6" fill="none" stroke="#4d9fff" stroke-width="1"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="680" height="280" fill="#101319"/>
+    <text x="40" y="32" font-size="12" fill="#7d879a" font-family="IBM Plex Mono, monospace">ONE SURFACE · SPLIT</text>
+    <rect x="40" y="56" width="360" height="180" rx="12" fill="#151922" stroke="#4d9fff" stroke-width="1.5"/>
+    <text x="60" y="88" font-size="14" font-weight="600" fill="#f2f5fa" font-family="Inter, sans-serif">The Card (left)</text>
+    <text x="60" y="112" font-size="11" fill="#98a1b5" font-family="IBM Plex Mono, monospace">HEADER · DEADLINE · WHAT CHANGED</text>
+    <text x="60" y="132" font-size="11" fill="#98a1b5" font-family="IBM Plex Mono, monospace">SCOPE LINE · IDEA KERNEL · FIT</text>
+    <text x="60" y="152" font-size="11" fill="#98a1b5" font-family="IBM Plex Mono, monospace">JUDGE WATCH · ACTIONS</text>
+    <rect x="60" y="172" width="120" height="22" rx="6" fill="rgba(240,168,60,0.15)"/>
+    <text x="72" y="187" font-size="10" fill="#f0a83c" font-family="IBM Plex Mono, monospace">RECHECK NOW</text>
+
+    <rect x="440" y="56" width="200" height="180" rx="12" fill="#0c0f14" stroke="rgba(255,255,255,0.13)" stroke-width="1"/>
+    <text x="460" y="88" font-size="14" font-weight="600" fill="#f2f5fa" font-family="Inter, sans-serif">Chat (right)</text>
+    <text x="460" y="112" font-size="11" fill="#98a1b5" font-family="IBM Plex Mono, monospace">LLM + TOOLS</text>
+    <text x="460" y="136" font-size="11" fill="#7d879a" font-family="IBM Plex Mono, monospace">discover · extract</text>
+    <text x="460" y="154" font-size="11" fill="#7d879a" font-family="IBM Plex Mono, monospace">plan · github · review</text>
+    <rect x="460" y="180" width="160" height="28" rx="8" fill="#151922" stroke="rgba(255,255,255,0.13)"/>
+    <text x="472" y="198" font-size="10" fill="#7d879a" font-family="IBM Plex Mono, monospace">&gt; tell caddie</text>
+
+    <line x1="400" y1="146" x2="440" y2="146" stroke="#4d9fff" stroke-width="1" marker-end="url(#ar)"/>
+  </svg>
+
+  <h2>Look and feel — locked</h2>
+  <div class="card">
+    <div class="k">01 Halo Ops resting · 04 emphasis on hot alerts only</div>
+    <div class="telemetry">
+      <div class="tcell"><div class="l">DEADLINE</div><div class="v hot">31d</div></div>
+      <div class="tcell"><div class="l">SCOPE</div><div class="v ok">HOLD</div></div>
+      <div class="tcell"><div class="l">ACTIONS</div><div class="v" style="color:#4d9fff">BLUE</div></div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><i style="background:#090b10"></i><span>#090b10</span></div>
+      <div class="sw"><i style="background:#101319"></i><span>#101319</span></div>
+      <div class="sw"><i style="background:#4d9fff"></i><span>#4d9fff</span></div>
+      <div class="sw"><i style="background:#3ecf8e"></i><span>#3ecf8e</span></div>
+      <div class="sw"><i style="background:#f0a83c"></i><span>#f0a83c</span></div>
+      <div class="sw"><i style="background:#ff7a83"></i><span>#ff7a83</span></div>
+    </div>
+    <p class="lead" style="margin-top:12px">Inter + optional Space Grotesk + Plex Mono · decision rails · compact metrics · quiet ops voice. Hot alerts borrow 04 urgency, not a second theme.</p>
+  </div>
+
+  <h2>Expand — behaviors & states</h2>
+
+  <details open>
+    <summary>Features (POC)</summary>
+    <div class="body">
+      <ul>
+        <li><strong>Profile</strong> — stack, hours/week, goals (local)</li>
+        <li><strong>Discover</strong> — Devpost only, fit-ranked</li>
+        <li><strong>Extract + fit</strong> — cited rules, verdict</li>
+        <li><strong>Ideate</strong> — one kernel + scope line on The Card</li>
+        <li><strong>Plan</strong> — skill-pack quality scope/prd/spec</li>
+        <li><strong>Start</strong> — GitHub repo + push those three docs</li>
+        <li><strong>What changed</strong> — re-check, impact-ranked diff</li>
+        <li><strong>Judge review</strong> — vs plan + judging criteria</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>States</summary>
+    <div class="body">
+      <ul>
+        <li><strong>First use</strong> — “No contest on the bag yet” + Find a hackathon</li>
+        <li><strong>Fetch fail</strong> — red card, last-good snapshot, Retry; never a fake brief</li>
+        <li><strong>No search hits</strong> — honest empty copy</li>
+        <li><strong>No rule delta</strong> — quiet</li>
+        <li><strong>Persistence</strong> — profile, snapshots, plans, repo URL local</li>
+        <li><strong>Human submits</strong> — always</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>Deferred / non-goals</summary>
+    <div class="body">
+      <ul>
+        <li>OAuth accounts · scheduler · push · MLH · teams · mobile · submit-for-you</li>
+        <li>Not social, not marketplace, not a todo app, not multi-tenant SaaS</li>
+      </ul>
+    </div>
+  </details>
+
+  <h2>Expansion note</h2>
+  <div class="card">
+    <p style="margin:0;color:var(--fg2)">Scope said “agent that stewards your entry end to end.” Now we know: <strong>one split surface</strong>, <strong>eight named behaviors</strong>, <strong>eight Card types</strong>, <strong>cited claims or it’s a bug</strong>, and a <strong>judge-style review</strong> that will not flatter you.</p>
+  </div>
+
+  <footer>status: draft — say “looks good” to approve · canonical devpost/prd.md</footer>
+</div>
+</body>
+</html>

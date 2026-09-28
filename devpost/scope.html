@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Caddie — Scope Review</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #cbd5e1;
+    --card: #ffffff;
+    --accent: #0d9488;
+    --accent-soft: #ccfbf1;
+    --warn: #fef3c7;
+    --warn-ink: #92400e;
+    --later: #e0e7ff;
+    --later-ink: #3730a3;
+    --cut: #fee2e2;
+    --cut-ink: #991b1b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 24px 64px;
+    background: var(--bg);
+    color: var(--ink);
+    font: 14px/1.5 -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  h1 { font-size: 28px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.02em; }
+  h2 { font-size: 16px; font-weight: 600; margin: 36px 0 12px; }
+  h3 { font-size: 13px; font-weight: 600; margin: 0 0 6px; }
+  p.lead { color: var(--muted); font-size: 15px; margin: 0 0 8px; max-width: 62ch; }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 12px;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; padding: 6px 10px; border-radius: 8px;
+    background: #f1f5f9; color: var(--ink); margin: 0 6px 6px 0;
+  }
+  .chip.ok { background: var(--accent-soft); color: var(--accent); }
+  .chip.warn { background: var(--warn); color: var(--warn-ink); }
+  .chip.later { background: var(--later); color: var(--later-ink); }
+  .chip.cut { background: var(--cut); color: var(--cut-ink); }
+  details {
+    border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+    padding: 12px 16px; margin-bottom: 8px;
+  }
+  details summary {
+    cursor: pointer; font-weight: 600; list-style: none;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: "+"; color: var(--muted); font-weight: 500; }
+  details[open] summary::after { content: "−"; }
+  details .body { margin-top: 12px; color: var(--ink); }
+  ul { margin: 8px 0 0; padding-left: 18px; }
+  li { margin: 4px 0; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .kernel {
+    border-left: 3px solid var(--accent); padding: 12px 16px;
+    background: var(--accent-soft); border-radius: 0 10px 10px 0; margin: 12px 0;
+  }
+  .steps { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .step {
+    flex: 1 1 120px; min-width: 110px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px; text-align: center;
+  }
+  .step .n {
+    width: 22px; height: 22px; border-radius: 999px; background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 6px;
+  }
+  .step .t { font-size: 12px; font-weight: 600; }
+  .step .d { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .hero {
+    background: linear-gradient(180deg, #fff 0%, #f0fdfa 100%);
+    border: 1px solid var(--accent); border-radius: 14px; padding: 20px 22px; margin: 16px 0 8px;
+  }
+  .hero h3 { color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .hero .big { font-size: 18px; font-weight: 600; line-height: 1.35; margin: 6px 0 0; }
+  svg { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; margin-right: 6px; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tag">scope · draft · review companion</div>
+  <h1>Caddie</h1>
+  <p class="lead">An agent caddie for hackathons — finds the fit, sharpens the idea, writes the plan, creates the repo, and reviews you like a judge before you submit. It carries the bag; you swing.</p>
+  <p class="muted">Markdown is canonical (<code>devpost/scope.md</code>). This page is only for reading the plan.</p>
+
+  <div class="hero">
+    <h3>The Unique Kernel</h3>
+    <p class="big">Not a summarizer. Not a dashboard. An agent that takes a busy builder from “which hackathon?” → planned repo on GitHub → judge-style review before submit.</p>
+    <p class="muted" style="margin-top:10px">Delete the <strong>plan→repo</strong> and <strong>judge review</strong> actions and this is just chat with search. That’s the kernel.</p>
+  </div>
+
+  <h2>Who it’s for</h2>
+  <div class="card">
+    <p style="margin:0">Busy builders with a <strong>full-time job and a side gig</strong> who enter hackathons — starting with the founder. They can ship products. They lose to <span class="chip warn">fine print</span><span class="chip warn">scope creep</span><span class="chip warn">bad presentation</span></p>
+    <p class="muted" style="margin:10px 0 0">Today: Devpost tabs, a half-kept plan, a demo rehearsed the night before.</p>
+  </div>
+
+  <h2>Core loop</h2>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t">Discover</div><div class="d">Devpost, fit-ranked</div></div>
+    <div class="step"><div class="n">2</div><div class="t">Decide</div><div class="d">Cited rules + verdict</div></div>
+    <div class="step"><div class="n">3</div><div class="t">Ideate</div><div class="d">One kernel</div></div>
+    <div class="step"><div class="n">4</div><div class="t">Plan</div><div class="d">scope · prd · spec</div></div>
+    <div class="step"><div class="n">5</div><div class="t">Start</div><div class="d">GitHub repo + docs</div></div>
+    <div class="step"><div class="n">6</div><div class="t">Review</div><div class="d">Judges’ eye</div></div>
+  </div>
+
+  <h2>Map</h2>
+  <svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Caddie core loop diagram">
+    <defs>
+      <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6" fill="none" stroke="#334155" stroke-width="1"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="680" height="340" fill="#ffffff"/>
+    <text x="40" y="32" font-size="12" font-weight="500" fill="#0f172a" font-family="-apple-system, sans-serif">Builder → Caddie → outcomes</text>
+
+    <!-- Builder -->
+    <rect x="40" y="60" width="140" height="56" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5" font-family="-apple-system, sans-serif"/>
+    <text x="110" y="84" text-anchor="middle" font-size="13" fill="#0f172a" font-family="-apple-system, sans-serif">Builder</text>
+    <text x="110" y="102" text-anchor="middle" font-size="11" fill="#64748b" font-family="-apple-system, sans-serif">job + side gig</text>
+
+    <!-- Profile -->
+    <rect x="40" y="150" width="140" height="48" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5" font-family="-apple-system, sans-serif"/>
+    <text x="110" y="178" text-anchor="middle" font-size="12" fill="#0f172a" font-family="-apple-system, sans-serif">Profile</text>
+
+    <!-- Agent core -->
+    <rect x="240" y="60" width="200" height="138" rx="8" fill="#fff" stroke="#0d9488" stroke-width="1" font-family="-apple-system, sans-serif"/>
+    <text x="340" y="90" text-anchor="middle" font-size="13" font-weight="600" fill="#0f172a" font-family="-apple-system, sans-serif">Caddie (agent)</text>
+    <text x="340" y="114" text-anchor="middle" font-size="11" fill="#64748b" font-family="-apple-system, sans-serif">discover · extract · fit</text>
+    <text x="340" y="132" text-anchor="middle" font-size="11" fill="#64748b" font-family="-apple-system, sans-serif">ideate · plan · act</text>
+    <text x="340" y="150" text-anchor="middle" font-size="11" fill="#64748b" font-family="-apple-system, sans-serif">review · what changed</text>
+    <rect x="268" y="162" width="144" height="22" rx="6" fill="#ccfbf1"/>
+    <text x="340" y="177" text-anchor="middle" font-size="11" fill="#115e59" font-family="-apple-system, sans-serif">chat is the surface</text>
+
+    <!-- Outcomes -->
+    <rect x="500" y="48" width="140" height="48" rx="8" fill="#ccfbf1" stroke="#0d9488" stroke-width="0.5" font-family="-apple-system, sans-serif"/>
+    <text x="570" y="76" text-anchor="middle" font-size="12" fill="#115e59" font-family="-apple-system, sans-serif">Today’s Brief</text>
+
+    <rect x="500" y="112" width="140" height="48" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="0.5" font-family="-apple-system, sans-serif"/>
+    <text x="570" y="140" text-anchor="middle" font-size="12" fill="#3730a3" font-family="-apple-system, sans-serif">Repo + plan docs</text>
+
+    <rect x="500" y="176" width="140" height="48" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="0.5" font-family="-apple-system, sans-serif"/>
+    <text x="570" y="204" text-anchor="middle" font-size="12" fill="#92400e" font-family="-apple-system, sans-serif">Judge review</text>
+
+    <!-- Sources -->
+    <rect x="240" y="240" width="200" height="48" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="0.5" font-family="-apple-system, sans-serif"/>
+    <text x="340" y="268" text-anchor="middle" font-size="12" fill="#0f172a" font-family="-apple-system, sans-serif">Devpost + contest rules</text>
+
+    <rect x="40" y="240" width="140" height="48" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="0.5" font-family="-apple-system, sans-serif"/>
+    <text x="110" y="268" text-anchor="middle" font-size="12" fill="#0f172a" font-family="-apple-system, sans-serif">GitHub</text>
+
+    <!-- arrows -->
+    <line x1="180" y1="88" x2="240" y2="100" stroke="#334155" stroke-width="1" marker-end="url(#ar)"/>
+    <line x1="180" y1="174" x2="240" y2="140" stroke="#334155" stroke-width="1" marker-end="url(#ar)"/>
+    <line x1="440" y1="90" x2="500" y2="72" stroke="#334155" stroke-width="1" marker-end="url(#ar)"/>
+    <line x1="440" y1="120" x2="500" y2="136" stroke="#334155" stroke-width="1" marker-end="url(#ar)"/>
+    <line x1="440" y1="160" x2="500" y2="190" stroke="#334155" stroke-width="1" marker-end="url(#ar)"/>
+    <line x1="340" y1="240" x2="340" y2="198" stroke="#334155" stroke-width="1" marker-end="url(#ar)"/>
+    <line x1="180" y1="264" x2="240" y2="264" stroke="#334155" stroke-width="1" marker-end="url(#ar)"/>
+  </svg>
+  <div class="legend">
+    <span><span class="dot" style="background:#0d9488"></span>Kernel path</span>
+    <span><span class="dot" style="background:#6366f1"></span>GitHub outcome</span>
+    <span><span class="dot" style="background:#d97706"></span>Judge beat</span>
+    <span><span class="dot" style="background:#94a3b8"></span>Inputs</span>
+  </div>
+
+  <h2>What “working” looks like (the demo)</h2>
+  <div class="card">
+    <p class="muted" style="margin-top:0">Under 3 minutes on screen:</p>
+    <ul>
+      <li>Profile exists (stack, hours/week, goals)</li>
+      <li>Chat: “find me a hackathon” → Devpost matches with fit reasons</li>
+      <li>Rules cited (deadline, eligibility, must-dos)</li>
+      <li>Idea sharpened to one kernel</li>
+      <li><code>scope</code> / <code>prd</code> / <code>spec</code> generated</li>
+      <li><strong>GitHub repo created with those three docs inside</strong></li>
+      <li>Fast-forward: judge-style review vs plan + judging criteria</li>
+    </ul>
+    <p style="margin:12px 0 0"><span class="chip ok">oh-that’s-cool beat</span> the repo appears with the plan already inside — and the review does not flatter.</p>
+  </div>
+
+  <h2>Boundary — expand a row</h2>
+
+  <details open>
+    <summary><span><span class="chip ok">NOW</span> What we build for this POC</span></summary>
+    <div class="body">
+      <ul>
+        <li>Builder profile (local)</li>
+        <li>Chat as primary interaction (agent-shaped)</li>
+        <li>Devpost discovery + rules extraction + citations + fit verdict</li>
+        <li>Ideate / sharpen to a kernel</li>
+        <li>Generate <code>scope.md</code>, <code>prd.md</code>, <code>spec.md</code></li>
+        <li><strong>Create GitHub repo + push those docs</strong></li>
+        <li>Today’s Brief / what-changed (thin — acts before you ask)</li>
+        <li><strong>Final review</strong> vs plan + contest judging criteria</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary><span><span class="chip later">LATER</span> Season 2</span></summary>
+    <div class="body">
+      <ul>
+        <li>Background scheduler / cloud monitor</li>
+        <li>Push, email, Slack notifications</li>
+        <li>GitHub OAuth accounts and multi-device sync</li>
+        <li>Multi-source discovery (MLH, etc.)</li>
+        <li>Long-term memory product (full today.ai “Memories”)</li>
+        <li>Full free-form multi-hour brainstorming product</li>
+        <li>Multi-user / teams · mobile · submission filler · deploy their app</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary><span><span class="chip cut">CUT</span> Not this product</span></summary>
+    <div class="body">
+      <ul>
+        <li>Social / community / matchmaking</li>
+        <li>Marketplace, sponsors, ads</li>
+        <li>Full calendar/todo replacement</li>
+        <li>Submitting or posting on the user’s behalf (human submits)</li>
+        <li>Claiming this POC is a hosted SaaS</li>
+      </ul>
+    </div>
+  </details>
+
+  <h2>Why it matters</h2>
+  <div class="card">
+    <p style="margin:0">They lost a large hackathon with a strong product and a weak presentation. They want something working without scope creep — for themselves and for people like them. <strong>Caddie is the caddie they wish they’d had.</strong></p>
+  </div>
+
+  <h2>Inspiration</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>today.ai</h3>
+      <p class="muted" style="margin:0">“Knows you, acts before you ask.” Living memory + proactive Today surface.</p>
+    </div>
+    <div class="card">
+      <h3>Devpost Learn Skill Pack</h3>
+      <p class="muted" style="margin:0">Interview → plan → act. We ship that discipline as a product feature.</p>
+    </div>
+  </div>
+
+  <footer>
+    Status: <strong>draft</strong> — say “looks good” to approve, or name changes.<br />
+    Canonical source: <code>devpost/scope.md</code>
+  </footer>
+</div>
+</body>
+</html>

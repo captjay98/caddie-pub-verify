@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Caddie — art directions (03 kept · 01/02 from HackSteward)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 18px 56px;
+    background: #dfe4e8; color: #111;
+    font: 14px/1.45 Inter, system-ui, sans-serif;
+  }
+  .intro { max-width: 1100px; margin: 0 auto 18px; }
+  .intro h1 { font-size: 22px; margin: 0 0 6px; font-family: "Space Grotesk", sans-serif; }
+  .intro p { margin: 0; color: #445; font-size: 13px; max-width: 74ch; }
+  .stack { max-width: 1100px; margin: 0 auto; display: grid; gap: 22px; }
+  .labelbar {
+    max-width: 1100px; margin: 0 auto 10px;
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #445;
+    padding: 4px 2px;
+  }
+  .dir {
+    display: grid; grid-template-columns: 1fr;
+    border-radius: 18px; overflow: hidden;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.12);
+  }
+  .stage {
+    min-height: 500px;
+    display: grid; grid-template-columns: 1.15fr 0.85fr;
+  }
+  @media (max-width: 900px) { .stage { grid-template-columns: 1fr; } }
+  .note {
+    background: #fff; padding: 18px 20px; font-size: 13px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .note h2 { margin: 0 0 4px; font-size: 15px; font-family: Inter, sans-serif; }
+  .note .k {
+    color: #667; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 10px;
+    font-family: "IBM Plex Mono", monospace;
+  }
+  .note ul { margin: 10px 0 0; padding-left: 16px; color: #334; }
+  .note li { margin: 4px 0; }
+
+  /* =========================================================
+     01 · HALO OPS — HackSteward dark layered workspace
+     ========================================================= */
+  .hs-dark {
+    --bg: #090b10;
+    --sidebar: #0c0f14;
+    --card: #101319;
+    --elevated: #151922;
+    --muted: #1b2029;
+    --fg: #f2f5fa;
+    --fg2: #98a1b5;
+    --fg3: #7d879a;
+    --primary: #4d9fff;
+    --ok: #3ecf8e;
+    --warn: #f0a83c;
+    --danger: #ff7a83;
+    --border: rgba(255,255,255,0.13);
+    --border-sub: rgba(255,255,255,0.07);
+    background: var(--bg);
+    color: var(--fg);
+  }
+  .hs-dark .stage {
+    background:
+      radial-gradient(760px 300px at 50% -40px, rgba(77,159,255,0.13), transparent 70%),
+      linear-gradient(180deg, #0c121c 0%, #0e1118 42%, #12100e 100%);
+  }
+  .hs-dark .left, .hs-dark .right { padding: 20px 18px 18px; }
+  .hs-dark .left { border-right: 1px solid var(--border-sub); }
+  .hs-dark .right { background: rgba(12,15,20,0.72); }
+
+  .hs-dark .topline {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .hs-dark .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+  }
+  .hs-dark .mark {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: linear-gradient(180deg, #5aa8ff, #2f7ddd);
+    box-shadow: 0 8px 26px -8px rgba(77,159,255,0.42);
+  }
+  .hs-dark .pill {
+    font-family: "IBM Plex Mono", monospace; font-size: 10px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 4px 8px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--fg2);
+    background: var(--elevated);
+  }
+  .hs-dark .pill.ok { color: var(--ok); border-color: rgba(62,207,142,0.35); background: rgba(62,207,142,0.1); }
+  .hs-dark .pill.warn { color: var(--warn); border-color: rgba(240,168,60,0.35); background: rgba(240,168,60,0.1); }
+
+  .hs-dark .hello {
+    font-size: 22px; font-weight: 650; letter-spacing: -0.02em;
+    margin: 0 0 4px;
+  }
+  .hs-dark .meta {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    color: var(--fg3); margin-bottom: 16px;
+  }
+
+  .hs-dark .rail {
+    border: 1px solid var(--border); border-radius: 12px;
+    background: linear-gradient(180deg, #141821, #101319);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.055);
+    padding: 12px 14px; margin-bottom: 10px;
+  }
+  .hs-dark .rail.warn {
+    background: linear-gradient(168deg, rgba(240,168,60,0.14), #12161f 58%);
+    border-color: rgba(240,168,60,0.28);
+  }
+  .hs-dark .rail.decision {
+    background: linear-gradient(168deg, rgba(77,159,255,0.14), #12161f 58%);
+    border-color: rgba(77,159,255,0.28);
+  }
+  .hs-dark .rail .over {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: "IBM Plex Mono", monospace; font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg3);
+    margin-bottom: 6px;
+  }
+  .hs-dark .rail .over .st { color: var(--primary); }
+  .hs-dark .rail .over .st.warn { color: var(--warn); }
+  .hs-dark .rail .over .st.ok { color: var(--ok); }
+  .hs-dark .rail h3 {
+    margin: 0 0 6px; font-size: 14px; font-weight: 600;
+    letter-spacing: -0.01em; line-height: 1.35;
+  }
+  .hs-dark .rail p {
+    margin: 0; font-size: 12px; color: var(--fg2); line-height: 1.5;
+  }
+  .hs-dark .rowmetrics {
+    display: flex; gap: 8px; margin: 10px 0 2px;
+  }
+  .hs-dark .metric {
+    flex: 1; background: var(--elevated); border: 1px solid var(--border-sub);
+    border-radius: 8px; padding: 8px 10px;
+  }
+  .hs-dark .metric .l {
+    font-family: "IBM Plex Mono", monospace; font-size: 9px;
+    letter-spacing: 0.12em; color: var(--fg3);
+  }
+  .hs-dark .metric .v {
+    font-size: 16px; font-weight: 650; letter-spacing: -0.02em; margin-top: 2px;
+  }
+  .hs-dark .metric .v.ok { color: var(--ok); }
+  .hs-dark .metric .v.warn { color: var(--warn); }
+  .hs-dark .metric .v.blue { color: var(--primary); }
+
+  .hs-dark .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .hs-dark .btn {
+    font-size: 11px; font-weight: 600; padding: 8px 12px;
+    border-radius: 8px; border: 1px solid var(--border);
+    color: var(--fg); background: var(--elevated); cursor: default;
+  }
+  .hs-dark .btn.primary {
+    background: linear-gradient(180deg, #5aa8ff, #2f7ddd);
+    color: #07101a; border: none;
+    box-shadow: 0 8px 26px -8px rgba(77,159,255,0.42);
+  }
+
+  .hs-dark .chat { display: flex; flex-direction: column; gap: 10px; }
+  .hs-dark .msg {
+    border-radius: 12px; padding: 11px 12px; font-size: 12px; line-height: 1.5;
+    border: 1px solid var(--border-sub); background: var(--card); color: var(--fg2);
+  }
+  .hs-dark .msg.me {
+    align-self: flex-end; max-width: 92%;
+    background: rgba(77,159,255,0.12); color: var(--fg);
+    border-color: rgba(77,159,255,0.28);
+  }
+  .hs-dark .composer {
+    margin-top: 12px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--elevated); padding: 11px 12px;
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--fg3);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.055);
+  }
+
+  /* =========================================================
+     02 · FIELD BRIEF — HackSteward light field / evidence
+     ========================================================= */
+  .hs-light {
+    --bg: #f6f8fc;
+    --card: #ffffff;
+    --elevated: #f1f4fa;
+    --muted: #e7ecf5;
+    --fg: #0b101a;
+    --fg2: #4c5768;
+    --fg3: #7b8697;
+    --primary: #1a72e8;
+    --ok: #0f9d63;
+    --warn: #a96412;
+    --danger: #c63d4a;
+    --border: rgba(11,16,26,0.1);
+    --border-sub: rgba(11,16,26,0.06);
+    background: var(--bg);
+    color: var(--fg);
+  }
+  .hs-light .stage {
+    background: linear-gradient(180deg, #e7eef8 0%, #f4f1ea 42%, #fff4e7 100%);
+  }
+  .hs-light .left, .hs-light .right { padding: 22px 20px; }
+  .hs-light .left { border-right: 1px solid var(--border-sub); }
+  .hs-light .right { background: rgba(255,255,255,0.55); }
+
+  .hs-light .kicker {
+    font-family: "IBM Plex Mono", monospace; font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--primary);
+    margin-bottom: 10px;
+  }
+  .hs-light .hello {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.03em;
+    margin: 0 0 6px; color: var(--fg);
+  }
+  .hs-light .hello span { color: var(--primary); }
+  .hs-light .meta {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    color: var(--fg3); margin-bottom: 18px;
+  }
+
+  .hs-light .sheet {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 14px 36px -14px rgba(0,0,0,0.1);
+  }
+  .hs-light .sheet .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "IBM Plex Mono", monospace; font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .hs-light .sheet .tag i {
+    width: 7px; height: 7px; border-radius: 50%; display: inline-block;
+  }
+  .hs-light .sheet h3 {
+    margin: 0 0 6px; font-size: 15px; font-weight: 650;
+    letter-spacing: -0.015em; line-height: 1.35;
+  }
+  .hs-light .sheet p {
+    margin: 0; font-size: 12.5px; color: var(--fg2); line-height: 1.55;
+  }
+  .hs-light .cite {
+    margin-top: 10px; font-family: "IBM Plex Mono", monospace;
+    font-size: 10px; color: var(--fg3);
+    border-top: 1px dashed var(--border); padding-top: 8px;
+  }
+  .hs-light .cite b { color: var(--primary); font-weight: 500; }
+  .hs-light .actions { display: flex; gap: 8px; margin-top: 12px; }
+  .hs-light .btn {
+    font-size: 11px; font-weight: 600; padding: 8px 12px;
+    border-radius: 8px; border: 1px solid var(--border);
+    color: var(--fg); background: var(--elevated); cursor: default;
+  }
+  .hs-light .btn.primary {
+    background: var(--primary); color: #fff; border-color: var(--primary);
+    box-shadow: 0 8px 26px -8px rgba(26,114,232,0.35);
+  }
+
+  .hs-light .thread { display: flex; flex-direction: column; gap: 10px; }
+  .hs-light .msg {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 11px 13px; font-size: 12.5px;
+    color: var(--fg2); line-height: 1.55;
+  }
+  .hs-light .msg.me {
+    align-self: flex-end; max-width: 92%;
+    background: rgba(26,114,232,0.08); color: var(--fg);
+    border-color: rgba(26,114,232,0.22);
+  }
+  .hs-light .composer {
+    margin-top: 14px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 11px 13px; color: var(--fg3);
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+  }
+
+  /* =========================================================
+     03 · PIT WALL — unchanged
+     ========================================================= */
+  .p {
+    background: #12141a; color: #f2f4f8;
+  }
+  .p .stage {
+    background: #12141a;
+  }
+  .p .left, .p .right { padding: 20px 18px; }
+  .p .left {
+    background:
+      linear-gradient(180deg, rgba(255,72,0,0.08), transparent 30%),
+      #12141a;
+    border-right: 1px solid #2a2e38;
+  }
+  .p .right { background: #0e1015; }
+  .p .kicker {
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 0.18em;
+    color: #ff6b2c; margin-bottom: 8px;
+  }
+  .p .hello {
+    font-family: "Space Grotesk", sans-serif; font-size: 32px; font-weight: 700;
+    margin: 0; letter-spacing: -0.03em; line-height: 1;
+  }
+  .p .clock {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; color: #8b93a3;
+    margin: 8px 0 18px;
+  }
+  .p .strip {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px;
+  }
+  .p .stat {
+    background: #1a1e27; border: 1px solid #2a2e38; padding: 10px;
+  }
+  .p .stat .l {
+    font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 0.12em;
+    color: #8b93a3;
+  }
+  .p .stat .v {
+    font-family: "Space Grotesk", sans-serif; font-size: 22px; font-weight: 700;
+    margin-top: 2px; letter-spacing: -0.03em;
+  }
+  .p .stat .v.hot { color: #ff6b2c; }
+  .p .stat .v.ok { color: #7dffa8; }
+  .p .alert {
+    border-left: 3px solid #ff6b2c; background: #1c1410;
+    padding: 12px 14px; margin-bottom: 10px;
+  }
+  .p .alert.green { border-left-color: #7dffa8; background: #101814; }
+  .p .alert .row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 0.1em;
+    color: #ff6b2c; margin-bottom: 6px;
+  }
+  .p .alert.green .row { color: #7dffa8; }
+  .p .alert h3 {
+    font-family: "Space Grotesk", sans-serif; font-size: 15px; margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  .p .alert p {
+    margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    color: #a8b0bf; line-height: 1.5;
+  }
+  .p .cta {
+    margin-top: 10px; display: inline-block; background: #ff6b2c; color: #12141a;
+    font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 12px;
+    padding: 10px 14px; letter-spacing: 0.02em;
+  }
+  .p .feed { display: flex; flex-direction: column; gap: 10px; }
+  .p .b {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; line-height: 1.55;
+    padding: 11px 12px; border: 1px solid #2a2e38; color: #c2c9d4;
+  }
+  .p .b.me {
+    background: #2a1810; border-color: #ff6b2c; color: #ffd2b8; align-self: flex-end;
+    max-width: 92%;
+  }
+  .p .term {
+    margin-top: 12px; border: 1px dashed #3a4050; padding: 10px 12px;
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; color: #8b93a3;
+  }
+  .p .term::before { content: "> "; color: #ff6b2c; }
+
+
+  /* ========== 04 PIT LAYOUT + HALO COLORS ========== */
+  .hy {
+    --bg:#090b10; --card:#101319; --elevated:#151922; --muted:#1b2029;
+    --fg:#f2f5fa; --fg2:#98a1b5; --fg3:#7d879a;
+    --primary:#4d9fff; --primary-strong:#2f7ddd;
+    --ok:#3ecf8e; --warn:#f0a83c; --danger:#ff7a83;
+    --border:rgba(255,255,255,0.13); --border-sub:rgba(255,255,255,0.07);
+    background:var(--bg); color:var(--fg);
+  }
+  .hy .stage {
+    background:
+      radial-gradient(760px 300px at 50% -40px, rgba(77,159,255,0.13), transparent 70%),
+      linear-gradient(180deg, #0c121c 0%, #0e1118 42%, #12100e 100%);
+  }
+  .hy .left,.hy .right{padding:20px 18px}
+  .hy .left{border-right:1px solid var(--border-sub)}
+  .hy .right{background:#0c0f14}
+  .hy .kicker{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.18em;color:#4d9fff;margin-bottom:8px}
+  .hy .hello{
+    font-family:"Space Grotesk",Inter,sans-serif;font-size:32px;font-weight:700;
+    margin:0;letter-spacing:-.03em;line-height:1;color:#f2f5fa
+  }
+  .hy .clock{font-family:"IBM Plex Mono",monospace;font-size:11px;color:#7d879a;margin:8px 0 18px}
+  .hy .strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+  .hy .stat{background:#151922;border:1px solid rgba(255,255,255,0.13);border-radius:8px;padding:10px}
+  .hy .stat .l{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.12em;color:#7d879a}
+  .hy .stat .v{
+    font-family:"Space Grotesk",Inter,sans-serif;font-size:22px;font-weight:700;
+    margin-top:2px;letter-spacing:-.03em;color:#f2f5fa
+  }
+  .hy .stat .v.hot{color:#f0a83c}
+  .hy .stat .v.ok{color:#3ecf8e}
+  .hy .alert{
+    border-left:3px solid #f0a83c;border-radius:0 12px 12px 0;
+    background:linear-gradient(168deg, rgba(240,168,60,0.14), #12161f 58%);
+    border:1px solid rgba(240,168,60,0.28); border-left-width:3px; border-left-color:#f0a83c;
+    padding:12px 14px;margin-bottom:10px
+  }
+  .hy .alert.green{
+    border-left-color:#3ecf8e;
+    background:linear-gradient(168deg, rgba(62,207,142,0.12), #12161f 58%);
+    border-color:rgba(62,207,142,0.28); border-left-width:3px; border-left-color:#3ecf8e
+  }
+  .hy .alert .row{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+    color:#f0a83c;margin-bottom:6px
+  }
+  .hy .alert.green .row{color:#3ecf8e}
+  .hy .alert h3{
+    font-family:"Space Grotesk",Inter,sans-serif;font-size:15px;margin:0 0 6px;
+    letter-spacing:-.02em;color:#f2f5fa
+  }
+  .hy .alert p{
+    margin:0;font-family:"IBM Plex Mono",monospace;font-size:11px;
+    color:#98a1b5;line-height:1.5
+  }
+  .hy .cta{
+    margin-top:10px;display:inline-block;
+    background:linear-gradient(180deg,#5aa8ff,#2f7ddd);color:#07101a;
+    font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;font-size:12px;
+    padding:10px 14px;letter-spacing:.02em;border-radius:8px;
+    box-shadow:0 8px 26px -8px rgba(77,159,255,0.42)
+  }
+  .hy .feed{display:flex;flex-direction:column;gap:10px}
+  .hy .b{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.55;
+    padding:11px 12px;border:1px solid rgba(255,255,255,0.07);
+    background:#101319;color:#98a1b5;border-radius:12px
+  }
+  .hy .b.me{
+    background:rgba(77,159,255,0.12);border-color:rgba(77,159,255,0.28);
+    color:#f2f5fa;align-self:flex-end;max-width:92%
+  }
+  .hy .term{
+    margin-top:12px;border:1px dashed rgba(255,255,255,0.13);padding:10px 12px;
+    font-family:"IBM Plex Mono",monospace;font-size:11px;color:#7d879a;border-radius:12px
+  }
+  .hy .term::before{content:"> ";color:#4d9fff}
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Caddie — 01 Halo Ops · 03 Pit Wall</h1>
+    <p>
+      HackSteward DNA: <strong>Inter</strong>, layered surfaces, crisp borders, compact density,
+      blue only for actions, green for verified success, amber for warnings.
+      Option 2 (Field Brief) removed. Discussion set: HackSteward ops vs pit-wall demo energy.
+    </p>
+  </div>
+
+  <!-- ========== 01 HALO OPS ========== -->
+  <div class="labelbar">01 · Halo Ops — HackSteward dark workspace · decisions, receipts, status</div>
+  <div class="dir hs-dark">
+    <div class="stage">
+      <div class="left">
+        <div class="topline">
+          <div class="brand"><div class="mark"></div>Caddie</div>
+          <div class="pill warn">1 rule delta</div>
+        </div>
+        <div class="hello">Good evening, Jamal</div>
+        <div class="meta">THE CARD · EVENING · BUILD WITH AI BASICS · T-31D</div>
+
+        <div class="rail decision">
+          <div class="over"><span>Decision · deadline</span><span class="st">Needs you</span></div>
+          <h3>Submit by Oct 26 · 5pm EDT — video is the artifact</h3>
+          <p>Will It Ship review Oct 22. Judges will not run your code. Presentation is 25% of the score.</p>
+          <div class="rowmetrics">
+            <div class="metric"><div class="l">TIME LEFT</div><div class="v warn">31d</div></div>
+            <div class="metric"><div class="l">SCOPE</div><div class="v ok">Hold</div></div>
+            <div class="metric"><div class="l">ENTRANTS</div><div class="v blue">891</div></div>
+          </div>
+        </div>
+
+        <div class="rail warn">
+          <div class="over"><span>Evidence · changed</span><span class="st warn">Impact high</span></div>
+          <h3>“New project” clause tightened</h3>
+          <p>Old code still out of bounds. Ideas remain allowed. Snapshot + source retained — re-check available.</p>
+          <div class="actions">
+            <div class="btn primary">Re-check source</div>
+            <div class="btn">Open receipt</div>
+          </div>
+        </div>
+
+        <div class="rail">
+          <div class="over"><span>Scope line</span><span class="st ok">Verified</span></div>
+          <h3>Build brief + repo + judge review</h3>
+          <p>Cut: scheduler · push · auth · multi-source crawl. Nothing else in the bag.</p>
+        </div>
+      </div>
+      <div class="right">
+        <div class="kicker" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.14em;color:#7d879a;margin-bottom:12px;">CADDIE CHANNEL</div>
+        <div class="chat">
+          <div class="msg me">what changed on the rules page?</div>
+          <div class="msg">One clause moved. Pre-existing code is stricter. Your clean-room POC still holds — I pinned the snapshot and the source URL.</div>
+          <div class="msg me">keep me honest on scope</div>
+          <div class="msg">Locked line: brief + repo + review. I’ll flag anything that tries to grow.</div>
+        </div>
+        <div class="composer">Ask Caddie…</div>
+      </div>
+    </div>
+    <div class="note">
+      <h2>01 · Halo Ops</h2>
+      <div class="k">Inter · dark layered #090b10 → #151922 · accent #4d9fff · ok #3ecf8e · warn #f0a83c</div>
+      <ul>
+        <li><strong>What it is:</strong> the HackSteward ops workspace as a personal caddie — decision rails, evidence, receipts, status. Compact, serious.</li>
+        <li><strong>Strongest for:</strong> continuity with HackSteward, Design judging (“coherent product experience”), trust.</li>
+        <li><strong>Caddie DNA still present:</strong> “the bag”, scope line, re-check as a first-class receipt.</li>
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- ========== 04 PIT LAYOUT + HALO COLORS ========== -->
+  <div class="labelbar">04 · Pit Wall layout + Halo Ops colors — structure of 03, palette of 01</div>
+  <div class="dir hy">
+    <div class="stage">
+      <div class="left">
+        <div class="kicker">CADDIE · EVENING BRIEF · LIVE</div>
+        <div class="hello">JAMAL<br>STAND BY</div>
+        <div class="clock">BUILD WITH AI BASICS · T-31D · TRACK CLEAR</div>
+        <div class="strip">
+          <div class="stat"><div class="l">DEADLINE</div><div class="v hot">31d</div></div>
+          <div class="stat"><div class="l">RULE DELTAS</div><div class="v hot">01</div></div>
+          <div class="stat"><div class="l">SCOPE</div><div class="v ok">HOLD</div></div>
+        </div>
+
+        <div class="alert">
+          <div class="row"><span>WHAT CHANGED</span><span>IMPACT HIGH</span></div>
+          <h3>“New project” clause tightened</h3>
+          <p>OLD CODE STILL OUT · IDEAS ALLOWED · SOURCE PINNED · RECHECKED 18:40</p>
+          <div class="cta">RECHECK NOW</div>
+        </div>
+
+        <div class="alert green">
+          <div class="row"><span>SCOPE LINE</span><span>LOCKED</span></div>
+          <h3>Build brief + repo + judge review</h3>
+          <p>CUT: SCHEDULER · PUSH · AUTH · MLH CRAWL</p>
+        </div>
+      </div>
+      <div class="right">
+        <div class="kicker">CHANNEL · CADDIE</div>
+        <div class="feed">
+          <div class="b me">what changed?</div>
+          <div class="b">RULES DELTA · 1 CLAUSE · “NEW PROJECT” STRICTER ON PRE-EXISTING CODE. POC CLEAN-ROOM STILL VALID. SOURCE IN PINNED NOTES.</div>
+          <div class="b me">and the bag?</div>
+          <div class="b">SCOPE HOLD · BRIEF + REPO + REVIEW. ANYTHING ELSE STAYS IN THE BAG.</div>
+        </div>
+        <div class="term">tell caddie</div>
+      </div>
+    </div>
+    <div class="note">
+      <h2>04 · Pit layout + Halo palette</h2>
+      <div class="k">Same geometry as 03 · colors from 01 — #4d9fff · #3ecf8e · #f0a83c · #090b10 stack</div>
+      <ul>
+        <li><strong>Layout from 03:</strong> telemetry, bold stand-by header, alert rows, terminal channel.</li>
+        <li><strong>Color from 01:</strong> HackSteward blue actions, green verified, amber warnings, layered dark — no carbon orange.</li>
+        <li><strong>Feel:</strong> pit-wall urgency with the trusted ops palette.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ========== 03 PIT WALL (kept) ========== -->
+  <div class="labelbar">03 · Pit Wall — kept unchanged</div>
+  <div class="dir p">
+    <div class="stage">
+      <div class="left">
+        <div class="kicker">CADDIE · EVENING BRIEF · LIVE</div>
+        <div class="hello">JAMAL<br>STAND BY</div>
+        <div class="clock">BUILD WITH AI BASICS · T-31D · TRACK CLEAR</div>
+        <div class="strip">
+          <div class="stat"><div class="l">DEADLINE</div><div class="v hot">31d</div></div>
+          <div class="stat"><div class="l">RULE DELTAS</div><div class="v hot">01</div></div>
+          <div class="stat"><div class="l">SCOPE</div><div class="v ok">HOLD</div></div>
+        </div>
+
+        <div class="alert">
+          <div class="row"><span>WHAT CHANGED</span><span>IMPACT HIGH</span></div>
+          <h3>“New project” clause tightened</h3>
+          <p>OLD CODE STILL OUT · IDEAS ALLOWED · SOURCE PINNED · RECHECKED 18:40</p>
+          <div class="cta">RECHECK NOW</div>
+        </div>
+
+        <div class="alert green">
+          <div class="row"><span>SCOPE LINE</span><span>LOCKED</span></div>
+          <h3>Build brief + repo + judge review</h3>
+          <p>CUT: SCHEDULER · PUSH · AUTH · MLH CRAWL</p>
+        </div>
+      </div>
+      <div class="right">
+        <div class="kicker">CHANNEL · CADDIE</div>
+        <div class="feed">
+          <div class="b me">what changed?</div>
+          <div class="b">RULES DELTA · 1 CLAUSE · “NEW PROJECT” STRICTER ON PRE-EXISTING CODE. POC CLEAN-ROOM STILL VALID. SOURCE IN PINNED NOTES.</div>
+          <div class="b me">and the bag?</div>
+          <div class="b">SCOPE HOLD · BRIEF + REPO + REVIEW. ANYTHING ELSE STAYS IN THE BAG.</div>
+        </div>
+        <div class="term">tell caddie</div>
+      </div>
+    </div>
+    <div class="note">
+      <h2>03 · Pit Wall</h2>
+      <div class="k">Space Grotesk + Plex Mono · carbon · signal orange</div>
+      <ul>
+        <li><strong>Kept as-is</strong> — best demo-video open / Presentation punch.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="intro" style="margin-top:22px">
+    <p>
+      <strong>Discussion:</strong> 04 is Pit Wall geometry with Halo Ops palette — pick this if you want 03’s layout in 01’s clothes.
+    </p>
+  </div>
+</body>
+</html>

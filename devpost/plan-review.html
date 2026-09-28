@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Caddie — full plan review</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#090b10; --card:#101319; --elevated:#151922;
+    --fg:#f2f5fa; --fg2:#98a1b5; --fg3:#7d879a;
+    --primary:#4d9fff; --ok:#3ecf8e; --warn:#f0a83c; --danger:#ff7a83;
+    --border:rgba(255,255,255,0.13); --sub:rgba(255,255,255,0.07);
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:28px 18px 72px;
+    background:
+      radial-gradient(760px 300px at 50% -40px, rgba(77,159,255,0.13), transparent 70%),
+      linear-gradient(180deg,#0c121c,#0e1118 42%,#12100e);
+    color:var(--fg); font:14px/1.5 Inter,system-ui,sans-serif;
+  }
+  .wrap { max-width:1000px; margin:0 auto; }
+  .tag {
+    display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10px;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--primary);
+    border:1px solid rgba(77,159,255,.35); background:rgba(77,159,255,.1);
+    padding:4px 10px; border-radius:999px; margin-bottom:12px;
+  }
+  h1 { font-family:"Space Grotesk",sans-serif; font-size:30px; margin:0 0 8px; letter-spacing:-.03em; }
+  h2 {
+    font-family:"Space Grotesk",sans-serif; font-size:18px; margin:40px 0 6px; letter-spacing:-.02em;
+  }
+  .secnum {
+    font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--primary);
+    letter-spacing:.14em; text-transform:uppercase;
+  }
+  .lead { color:var(--fg2); max-width:72ch; margin:0 0 14px; }
+  .card {
+    background:linear-gradient(180deg,#141821,#101319);
+    border:1px solid var(--border); border-radius:14px; padding:16px 18px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.055); margin-bottom:12px;
+  }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  @media (max-width:800px) { .grid2,.grid3 { grid-template-columns:1fr; } }
+  .k {
+    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--fg3); margin-bottom:8px;
+  }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--sub); vertical-align:top; }
+  th {
+    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--fg3);
+  }
+  td { color:var(--fg2); } td strong, code { color:var(--fg); }
+  code {
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+    background:rgba(77,159,255,.1); padding:1px 5px; border-radius:4px;
+  }
+  .pill {
+    display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10px;
+    padding:3px 8px; border-radius:999px; margin:0 6px 6px 0;
+    background:rgba(77,159,255,.12); color:var(--primary); border:1px solid rgba(77,159,255,.3);
+  }
+  .pill.ok { background:rgba(62,207,142,.12); color:var(--ok); border-color:rgba(62,207,142,.3); }
+  .pill.warn { background:rgba(240,168,60,.12); color:var(--warn); border-color:rgba(240,168,60,.3); }
+  .pill.danger { background:rgba(255,122,131,.12); color:var(--danger); border-color:rgba(255,122,131,.3); }
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  @media (max-width:800px) { .steps { grid-template-columns:1fr 1fr; } }
+  .step {
+    background:var(--elevated); border:1px solid var(--sub); border-radius:10px; padding:12px;
+  }
+  .step .n {
+    width:22px;height:22px;border-radius:999px;background:var(--primary);color:#07101a;
+    font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;
+  }
+  .step .t { font-size:12px; font-weight:650; margin:6px 0 2px; }
+  .step .d { font-size:11px; color:var(--fg3); }
+  svg { width:100%; height:auto; border:1px solid var(--sub); border-radius:12px; background:#101319; }
+  /* mini UI mock */
+  .ui {
+    border:1px solid var(--border); border-radius:12px; overflow:hidden;
+    background:linear-gradient(180deg,#0c121c,#0e1118 55%,#12100e);
+  }
+  .ui-head {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 12px; border-bottom:1px solid var(--sub);
+  }
+  .ui-brand { display:flex; align-items:center; gap:8px; font-size:11px; font-weight:600; }
+  .ui-mark {
+    width:18px;height:18px;border-radius:5px;
+    background:linear-gradient(180deg,#5aa8ff,#2f7ddd);
+  }
+  .ui-tabs { display:flex; gap:4px; }
+  .ui-tab {
+    font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.08em;
+    padding:4px 8px; border-radius:999px; color:var(--fg3); border:1px solid transparent;
+  }
+  .ui-tab.on { color:var(--primary); border-color:rgba(77,159,255,.35); background:rgba(77,159,255,.1); }
+  .ui-body { display:grid; grid-template-columns:1.15fr 0.85fr; min-height:280px; }
+  @media (max-width:800px) { .ui-body { grid-template-columns:1fr; } }
+  .ui-card, .ui-chat { padding:12px; }
+  .ui-card { border-right:1px solid var(--sub); }
+  .rail {
+    border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px;
+    background:linear-gradient(180deg,#141821,#101319);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.055);
+  }
+  .rail.hot {
+    background:linear-gradient(168deg, rgba(240,168,60,0.14), #12161f 58%);
+    border-color:rgba(240,168,60,0.3);
+  }
+  .rail .over {
+    display:flex; justify-content:space-between;
+    font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--fg3); margin-bottom:4px;
+  }
+  .rail .over .hot { color:var(--warn); }
+  .rail .over .ok { color:var(--ok); }
+  .rail h4 { margin:0 0 4px; font-size:12px; font-weight:650; letter-spacing:-.01em; }
+  .rail p { margin:0; font-size:11px; color:var(--fg2); line-height:1.45; }
+  .rail .src {
+    margin-top:6px; font-family:"IBM Plex Mono",monospace; font-size:9px; color:var(--fg3);
+    border-top:1px dashed var(--sub); padding-top:6px;
+  }
+  .btn {
+    display:inline-block; margin-top:8px; font-size:10px; font-weight:650;
+    padding:6px 10px; border-radius:7px;
+    background:linear-gradient(180deg,#5aa8ff,#2f7ddd); color:#07101a;
+    box-shadow:0 8px 26px -8px rgba(77,159,255,0.42);
+  }
+  .btn.ghost {
+    background:var(--elevated); color:var(--fg); border:1px solid var(--border);
+    box-shadow:none; margin-left:6px;
+  }
+  .msg {
+    border-radius:10px; padding:8px 10px; font-size:11px; line-height:1.45;
+    border:1px solid var(--sub); background:var(--card); color:var(--fg2); margin-bottom:8px;
+  }
+  .msg.me {
+    align-self:flex-end; max-width:92%;
+    background:rgba(77,159,255,.12); color:var(--fg); border-color:rgba(77,159,255,.28);
+  }
+  .banner {
+    font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.08em;
+    color:var(--warn); margin-bottom:8px;
+  }
+  .term {
+    border:1px dashed rgba(255,255,255,0.13); border-radius:10px; padding:8px 10px;
+    font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--fg3); margin-top:8px;
+  }
+  .term::before { content:"> "; color:var(--primary); }
+  .sw { width:80px; }
+  .sw i { display:block; height:32px; border-radius:8px; border:1px solid var(--border); }
+  .sw span {
+    font-family:"IBM Plex Mono",monospace; font-size:9px; color:var(--fg3);
+    display:block; margin-top:4px;
+  }
+  .telemetry { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+  .tcell { background:#151922; border:1px solid #2a2e38; border-radius:8px; padding:8px 10px; }
+  .tcell .l {
+    font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.12em; color:#7d879a;
+  }
+  .tcell .v {
+    font-family:"Space Grotesk",sans-serif; font-size:18px; font-weight:700; letter-spacing:-.03em;
+  }
+  .tcell .v.hot { color:var(--warn); }
+  .tcell .v.ok { color:var(--ok); }
+  .tcell .v.blue { color:var(--primary); }
+  .task {
+    display:flex; justify-content:space-between; align-items:center;
+    border:1px solid var(--sub); border-radius:8px; padding:8px 10px; margin-bottom:6px;
+    font-size:11px;
+  }
+  .task .type {
+    font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.08em;
+    color:var(--fg3);
+  }
+  .check {
+    width:14px; height:14px; border-radius:4px; border:1px solid var(--border);
+    display:inline-block; margin-right:8px; vertical-align:middle;
+  }
+  .check.on { background:var(--ok); border-color:var(--ok); }
+  footer {
+    margin-top:48px; padding-top:16px; border-top:1px solid var(--sub);
+    color:var(--fg3); font-family:"IBM Plex Mono",monospace; font-size:11px;
+  }
+  .toc {
+    display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 8px;
+  }
+  .toc a {
+    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--primary); text-decoration:none;
+    border:1px solid rgba(77,159,255,.3); background:rgba(77,159,255,.08);
+    padding:6px 10px; border-radius:999px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tag">full plan review · one pass</div>
+  <h1>Caddie — everything, once, visually</h1>
+  <p class="lead">
+    Agent caddie for hackathons. One shell: <strong>The Card</strong> + <strong>Tasks</strong> on the left,
+    <strong>chat</strong> on the right. Tools run on the server. You submit; it prepares and judges.
+  </p>
+
+  <div class="toc">
+    <a href="#s1">1 Kernel</a>
+    <a href="#s2">2 Journey</a>
+    <a href="#s3">3 UI</a>
+    <a href="#s4">4 Tasks</a>
+    <a href="#s5">5 System</a>
+    <a href="#s6">6 Look</a>
+    <a href="#s7">7 Boundary</a>
+    <a href="#s8">8 Demo</a>
+  </div>
+
+  <!-- 1 -->
+  <h2 id="s1"><span class="secnum">01</span><br/>The kernel</h2>
+  <p class="lead">Not a summarizer. Not a dashboard. An agent that takes a busy builder from “which hackathon?” → planned repo → judge-style review.</p>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <div class="k">Who</div>
+        <p class="lead" style="margin:0">Job + side gig. Can ship. Loses to <span class="pill warn">fine print</span><span class="pill warn">scope creep</span><span class="pill warn">bad presentation</span></p>
+      </div>
+      <div>
+        <div class="k">Delete test</div>
+        <p class="lead" style="margin:0">Remove <strong>plan→repo</strong> and <strong>judge review</strong> and this is chat with search. That’s the kernel.</p>
+      </div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t">Discover</div><div class="d">Devpost, fit-ranked</div></div>
+    <div class="step"><div class="n">2</div><div class="t">Decide</div><div class="d">Cited rules + verdict</div></div>
+    <div class="step"><div class="n">3</div><div class="t">Ideate</div><div class="d">One kernel + scope line</div></div>
+    <div class="step"><div class="n">4</div><div class="t">Plan</div><div class="d">scope · prd · spec</div></div>
+    <div class="step"><div class="n">5</div><div class="t">Start</div><div class="d">GitHub repo + docs</div></div>
+    <div class="step"><div class="n">6</div><div class="t">Review</div><div class="d">Judge scorecard</div></div>
+    <div class="step"><div class="n">7</div><div class="t">Tasks</div><div class="d">Checklist · schedule · jobs</div></div>
+    <div class="step"><div class="n">8</div><div class="t">Re-check</div><div class="d">What changed</div></div>
+    <div class="step"><div class="n">9</div><div class="t">You submit</div><div class="d">Human always</div></div>
+  </div>
+
+  <!-- 2 -->
+  <h2 id="s2"><span class="secnum">02</span><br/>Journey through the system</h2>
+  <svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Journey">
+    <defs>
+      <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6" fill="none" stroke="#4d9fff" stroke-width="1"/>
+      </marker>
+    </defs>
+    <rect width="680" height="300" fill="#101319"/>
+    <rect x="24" y="40" width="130" height="50" rx="10" fill="#151922" stroke="#4d9fff"/>
+    <text x="89" y="70" text-anchor="middle" font-size="12" fill="#f2f5fa" font-family="Inter,sans-serif">Chat / Card</text>
+    <rect x="190" y="40" width="130" height="50" rx="10" fill="#151922" stroke="#4d9fff"/>
+    <text x="255" y="70" text-anchor="middle" font-size="12" fill="#f2f5fa" font-family="Inter,sans-serif">AI SDK</text>
+    <rect x="356" y="40" width="130" height="50" rx="10" fill="#151922" stroke="#f0a83c"/>
+    <text x="421" y="70" text-anchor="middle" font-size="12" fill="#f2f5fa" font-family="Inter,sans-serif">Tools</text>
+    <rect x="522" y="40" width="130" height="50" rx="10" fill="#151922" stroke="rgba(255,255,255,0.13)"/>
+    <text x="587" y="70" text-anchor="middle" font-size="12" fill="#f2f5fa" font-family="Inter,sans-serif">D1 + GitHub</text>
+
+    <line x1="154" y1="65" x2="190" y2="65" stroke="#4d9fff" marker-end="url(#ar)"/>
+    <line x1="320" y1="65" x2="356" y2="65" stroke="#4d9fff" marker-end="url(#ar)"/>
+    <line x1="486" y1="65" x2="522" y2="65" stroke="#4d9fff" marker-end="url(#ar)"/>
+
+    <rect x="24" y="130" width="628" height="48" rx="10" fill="#0c0f14" stroke="rgba(255,255,255,0.07)"/>
+    <text x="338" y="160" text-anchor="middle" font-size="12" fill="#98a1b5" font-family="IBM Plex Mono,monospace">fetch_rules via Parallel Extract → claims with citations → card upsert</text>
+
+    <rect x="24" y="198" width="300" height="56" rx="10" fill="#0c0f14" stroke="rgba(62,207,142,0.35)"/>
+    <text x="174" y="222" text-anchor="middle" font-size="12" fill="#3ecf8e" font-family="Inter,sans-serif">create_task → async job</text>
+    <text x="174" y="240" text-anchor="middle" font-size="10" fill="#7d879a" font-family="IBM Plex Mono,monospace">slow work leaves chat immediately</text>
+
+    <rect x="356" y="198" width="296" height="56" rx="10" fill="#0c0f14" stroke="rgba(240,168,60,0.35)"/>
+    <text x="504" y="222" text-anchor="middle" font-size="12" fill="#f0a83c" font-family="Inter,sans-serif">Cron → scheduled task</text>
+    <text x="504" y="240" text-anchor="middle" font-size="10" fill="#7d879a" font-family="IBM Plex Mono,monospace">morning card · rules re-check</text>
+
+    <line x1="255" y1="178" x2="174" y2="198" stroke="#3ecf8e" marker-end="url(#ar)"/>
+    <line x1="421" y1="178" x2="504" y2="198" stroke="#f0a83c" marker-end="url(#ar)"/>
+  </svg>
+
+  <!-- 3 -->
+  <h2 id="s3"><span class="secnum">03</span><br/>UI — the shell you will demo</h2>
+  <div class="ui">
+    <div class="ui-head">
+      <div class="ui-brand"><div class="ui-mark"></div>Caddie</div>
+      <div class="ui-tabs">
+        <div class="ui-tab on">CARD</div>
+        <div class="ui-tab">TASKS</div>
+        <div class="ui-tab">T-31D</div>
+      </div>
+    </div>
+    <div class="ui-body">
+      <div class="ui-card">
+        <div class="telemetry">
+          <div class="tcell"><div class="l">DEADLINE</div><div class="v hot">31d</div></div>
+          <div class="tcell"><div class="l">SCOPE</div><div class="v ok">HOLD</div></div>
+          <div class="tcell"><div class="l">TASKS</div><div class="v blue">3</div></div>
+        </div>
+        <div class="rail">
+          <div class="over"><span>Deadline</span><span class="ok">Needs you</span></div>
+          <h4>Submit Oct 26 · 5pm EDT — video is the artifact</h4>
+          <p>Will It Ship Oct 22. Judges do not run code.</p>
+        </div>
+        <div class="rail hot">
+          <div class="over"><span>What changed</span><span class="hot">Impact high</span></div>
+          <h4>“New project” clause tightened</h4>
+          <p>Old code still out · ideas allowed · source pinned.</p>
+          <div class="src">learn-ai-basics.devpost.com/rules · snap 18:40</div>
+          <div class="btn">Re-check</div><div class="btn ghost">Diff</div>
+        </div>
+        <div class="rail">
+          <div class="over"><span>Scope line</span><span class="ok">Verified</span></div>
+          <h4>Build brief + repo + judge review</h4>
+          <p>Cut: scheduler-as-platform · push · OAuth · MLH.</p>
+        </div>
+      </div>
+      <div class="ui-chat">
+        <div class="banner">TOOL · FETCH_RULES · PARALLEL EXTRACT</div>
+        <div class="msg me">what changed?</div>
+        <div class="msg">One clause moved. Snapshot + source pinned on the Card.</div>
+        <div class="msg me">this extract is slow — handle it in background</div>
+        <div class="msg">Created task <strong>#12 deep_extract</strong> · I’ll blip the Card when it’s done.</div>
+        <div class="term">tell caddie</div>
+      </div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:12px">
+    <div class="card">
+      <div class="k">Surfaces</div>
+      <p class="lead" style="margin:0">Onboarding modal · contest slide-over · repo success modal · judge panel · task popover · Card skeletons · chat tool banners · empty + danger states.</p>
+    </div>
+    <div class="card">
+      <div class="k">Tasks lane</div>
+      <div class="task"><span><span class="check on"></span>Record 3-min demo</span><span class="type">CHECKLIST</span></div>
+      <div class="task"><span><span class="check"></span>Nightly rules re-check</span><span class="type">SCHEDULED</span></div>
+      <div class="task"><span><span class="check"></span>deep_extract #12</span><span class="type">AGENT · RUNNING</span></div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <h2 id="s4"><span class="secnum">04</span><br/>Tasks — three kinds</h2>
+  <div class="grid3">
+    <div class="card">
+      <div class="k" style="color:var(--ok)">Checklist</div>
+      <p class="lead" style="margin:0;font-size:13px">Submission todos from the plan. Due dates anchored to the contest. Human ticks them.</p>
+    </div>
+    <div class="card">
+      <div class="k" style="color:var(--warn)">Scheduled</div>
+      <p class="lead" style="margin:0;font-size:13px">Cloudflare Cron. Morning Card regen · rules re-check. Shows next/last run.</p>
+    </div>
+    <div class="card">
+      <div class="k" style="color:var(--primary)">Agent-promoted</div>
+      <p class="lead" style="margin:0;font-size:13px">Chat work that will take a while becomes a task. Caddie returns immediately. Status + retry + Card blip.</p>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <h2 id="s5"><span class="secnum">05</span><br/>System</h2>
+  <div class="card">
+    <div class="k">Stack</div>
+    <span class="pill">TanStack Start</span>
+    <span class="pill">Cloudflare Workers</span>
+    <span class="pill">D1</span>
+    <span class="pill ok">Vercel AI SDK</span>
+    <span class="pill ok">Env LLM</span>
+    <span class="pill ok">Parallel Extract/Search</span>
+    <span class="pill warn">GitHub REST + PAT</span>
+    <span class="pill warn">Cron Triggers</span>
+  </div>
+  <div class="card">
+    <div class="k">Tools (server-side — keys never in browser)</div>
+    <table>
+      <tr><th>Tool</th><th>Job</th></tr>
+      <tr><td><code>search_devpost</code></td><td>Parallel Search + URLs</td></tr>
+      <tr><td><code>fetch_rules</code></td><td>Parallel Extract primary (JS-safe) → raw fetch → labeled paste</td></tr>
+      <tr><td><code>extract_claims</code></td><td>Deadlines / eligibility / must-dos <strong>with source</strong></td></tr>
+      <tr><td><code>fit_verdict</code></td><td>Worth it / stretch / skip</td></tr>
+      <tr><td><code>plan_docs</code></td><td>scope / prd / spec for their project</td></tr>
+      <tr><td><code>create_repo</code> · <code>push_files</code></td><td>GitHub repo with the three docs</td></tr>
+      <tr><td><code>recheck_rules</code></td><td>Diff + impact rank → What changed</td></tr>
+      <tr><td><code>judge_review</code></td><td>Score vs plan + judging criteria</td></tr>
+      <tr><td><code>create_task</code> · <code>update_task</code></td><td>Checklist / scheduled / agent jobs</td></tr>
+    </table>
+  </div>
+
+  <!-- 6 -->
+  <h2 id="s6"><span class="secnum">06</span><br/>Look — Halo Ops (locked)</h2>
+  <div class="card">
+    <div class="k">Palette</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <div class="sw"><i style="background:#090b10"></i><span>#090b10</span></div>
+      <div class="sw"><i style="background:#101319"></i><span>#101319</span></div>
+      <div class="sw"><i style="background:#151922"></i><span>#151922</span></div>
+      <div class="sw"><i style="background:#4d9fff"></i><span>#4d9fff</span></div>
+      <div class="sw"><i style="background:#3ecf8e"></i><span>#3ecf8e</span></div>
+      <div class="sw"><i style="background:#f0a83c"></i><span>#f0a83c</span></div>
+      <div class="sw"><i style="background:#ff7a83"></i><span>#ff7a83</span></div>
+    </div>
+    <p class="lead" style="margin:12px 0 0">Inter + Plex Mono · compact density · decision rails · source stamps · hot alerts borrow pit-wall urgency. Voice: “Scope hold.” “Source pinned.”</p>
+  </div>
+
+  <!-- 7 -->
+  <h2 id="s7"><span class="secnum">07</span><br/>Boundary</h2>
+  <div class="grid2">
+    <div class="card">
+      <div class="k" style="color:var(--ok)">In</div>
+      <ul style="margin:0;padding-left:18px;color:var(--fg2)">
+        <li>Profile · Devpost discover · cited extract · fit</li>
+        <li>Ideate · plan docs · GitHub repo+push</li>
+        <li>What changed · judge review</li>
+        <li>Tasks: checklist / cron / agent jobs</li>
+        <li>Full UI inventory (modals, skeletons, banners)</li>
+        <li>Local + Workers + D1</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="k" style="color:var(--danger)">Out</div>
+      <ul style="margin:0;padding-left:18px;color:var(--fg2)">
+        <li>Push / email / Slack</li>
+        <li>GitHub OAuth · multi-user · mobile</li>
+        <li>MLH / multi-source crawl</li>
+        <li>Submitting on the user’s behalf</li>
+        <li>Social · marketplace · full calendar</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <h2 id="s8"><span class="secnum">08</span><br/>Demo story (≤3 min)</h2>
+  <div class="card">
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="t">Open</div><div class="d">Evening Card · skeletons resolve</div></div>
+      <div class="step"><div class="n">2</div><div class="t">Chat</div><div class="d">“Find me a hackathon”</div></div>
+      <div class="step"><div class="n">3</div><div class="t">Cite</div><div class="d">Rules + sources on Card</div></div>
+      <div class="step"><div class="n">4</div><div class="t">Cut</div><div class="d">Scope line appears</div></div>
+      <div class="step"><div class="n">5</div><div class="t">Repo</div><div class="d">Success modal · docs inside</div></div>
+      <div class="step"><div class="n">6</div><div class="t">Hot</div><div class="d">What changed · Re-check</div></div>
+      <div class="step"><div class="n">7</div><div class="t">Task</div><div class="d">Agent job leaves chat</div></div>
+      <div class="step"><div class="n">8</div><div class="t">Judge</div><div class="d">Scorecard · presentation risks</div></div>
+      <div class="step"><div class="n">9</div><div class="t">You</div><div class="d">Human submits</div></div>
+    </div>
+  </div>
+
+  <footer>
+    Caddie · planning set: scope.md · prd.md · spec.md (re-approve after this pass)<br/>
+    Learning goal: ship without scope creep · Look: Halo Ops · Contest: Build With AI: Basics · Due Oct 26, 2026
+  </footer>
+</div>
+</body>
+</html>
